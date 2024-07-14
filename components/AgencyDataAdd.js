@@ -10,7 +10,7 @@
 //   ssr: false,
 // });
 // const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // const supabase = createClient(supabaseUrl, supabaseKey);
 
 // const AddContent = () => {
@@ -200,7 +200,7 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
 });
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const AddContent = ({ agencyMaster }) => {

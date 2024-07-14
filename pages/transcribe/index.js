@@ -9,7 +9,7 @@
 // import { AssemblyAI } from 'assemblyai';
 
 // const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // const supabase = createClient(supabaseUrl, supabaseKey);
 // const client = new AssemblyAI({ apiKey: 'e837af9c56674f6eb72ad23199c060ce' });
 
@@ -119,7 +119,7 @@
 // import { AssemblyAI } from 'assemblyai';
 
 // const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // const supabase = createClient(supabaseUrl, supabaseKey);
 // const client = new AssemblyAI({ apiKey: 'e837af9c56674f6eb72ad23199c060ce' });
 
@@ -298,7 +298,7 @@
 // import { AssemblyAI } from 'assemblyai';
 
 // const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // const supabase = createClient(supabaseUrl, supabaseKey);
 // const client = new AssemblyAI({ apiKey: '91668eb0d7b442698d2d8b046e00d55f' });
 
@@ -496,7 +496,7 @@ import {
 import { TiCancel, TiDeleteOutline, TiEdit, TiTick } from "react-icons/ti";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 const client = new AssemblyAI({ apiKey: "e837af9c56674f6eb72ad23199c060ce" });
 
