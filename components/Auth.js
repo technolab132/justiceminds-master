@@ -61,7 +61,7 @@ const Auth = () => {
   };
   // const signInWithGoogle = async () => {
   //   try {
-  //     const response = await fetch('/api/auth/google');
+  //     const response = await fetch('/auth/google');
   //     const { authUrl } = await response.json();
   //     window.location.href = authUrl;
   //   } catch (error) {
@@ -104,7 +104,7 @@ const Auth = () => {
   //     const encodedCodeVerifier = encodeURIComponent(codeVerifier);
 
   //     // Construct redirectTo URL with code verifier as query parameter
-  //     const redirectTo = `${process.env.NEXT_PUBLIC_REDIRECT_URL}/api/auth/callback?code_verifier=${encodedCodeVerifier}`;
+  //     const redirectTo = `${process.env.NEXT_PUBLIC_REDIRECT_URL}/auth/callback?code_verifier=${encodedCodeVerifier}`;
   //     console.log('Code verifier set in cookie:', codeVerifier); 
   //     const { data, error } = await supabase.auth.signInWithOAuth({
   //       provider: 'google',
