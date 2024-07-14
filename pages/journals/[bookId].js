@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClient } from "@supabase/supabase-js";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "../../components/LoadingComponent";
 import PageFlip from 'react-pageflip';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

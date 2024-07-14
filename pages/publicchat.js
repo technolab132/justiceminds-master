@@ -1,10 +1,10 @@
 import Chat from '../components/Chat'
-import PublicLogin from '@/components/PublicLogin';
+import PublicLogin from '../components/PublicLogin';
 import React, { useEffect, useState } from 'react'
 import { setCookie } from "nookies";
 import { parse } from "cookie";
-import Login from '@/components/Login';
-import Navbar from '@/components/Navbar';
+import Login from '../components/Login';
+import Navbar from '../components/Navbar';
 
 const publicchat = () => {
   const [isLoading, setisLoading] = useState(false);

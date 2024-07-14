@@ -3,20 +3,20 @@ import copy from "clipboard-copy";
 import { createClient } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
-import Login from "@/components/Login";
+import Login from "../../components/Login";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import AgencyDataAdd from "@/components/AgencyDataAdd";
+import Navbar from "../../components/Navbar";
+import AgencyDataAdd from "../../components/AgencyDataAdd";
 import { TiDeleteOutline } from "react-icons/ti";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "../../components/LoadingComponent";
 
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "../../components/ui/resizable";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;

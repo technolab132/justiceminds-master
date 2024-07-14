@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { createClient } from "@supabase/supabase-js";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "./LoadingComponent";
 import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
-import PublicLogin from "@/components/PublicLogin";
+import PublicLogin from "./PublicLogin";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 import {
@@ -20,7 +20,7 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "./ui/resizable";
 
 import copy from "clipboard-copy";
 const JoditEditor = dynamic(() => import("jodit-react"), {

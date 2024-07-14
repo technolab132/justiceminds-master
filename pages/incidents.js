@@ -4,14 +4,14 @@ import Login from "../components/Login"; // Update the path
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 import Link from "next/link";
-import FilterSidebar from "@/components/FilterSidebar";
-import DefaultMessage from "@/components/DefaultMessage";
+import FilterSidebar from "../components/FilterSidebar";
+import DefaultMessage from "../components/DefaultMessage";
 import dynamic from "next/dynamic";
 
 // Replace the original import with a dynamic import
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.bubble.css";
-import Navbar from "@/components/Navbar";
+import Navbar from "../components/Navbar";
 import { TiDeleteOutline } from "react-icons/ti";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

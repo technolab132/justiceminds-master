@@ -805,7 +805,7 @@ const DetailPanel = ({
                             <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-black p-3 rounded-lg w-full"></AccordionTrigger>
                           </div>
                           <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
-                            <li className="rounded-md dark:bg-[#111111] bg-white text-black" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                            <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
@@ -913,7 +913,7 @@ const DetailPanel = ({
                             <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-black p-3 rounded-lg w-full"></AccordionTrigger>
                           </div>
                           <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
-                            <li className="rounded-md dark:bg-[#111111] bg-white text-black" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                            <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>

@@ -8,7 +8,8 @@ export default async function handler(req, res) {
 
   try {
     const cookies = cookie.parse(req.headers.cookie || '');
-    const { accessToken, refreshToken } = cookies;
+    const accessToken = cookies.access_token;
+    const refreshToken = cookies.refresh_token;
 
     if (!accessToken || !refreshToken) {
       return res.status(401).json({ error: 'No OAuth tokens found' });

@@ -482,17 +482,17 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Login from "@/components/Login";
+import Navbar from "../../components/Navbar";
+import Login from "../../components/Login";
 import { setCookie, parseCookies } from "nookies";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "../../components/LoadingComponent";
 import { createClient } from "@supabase/supabase-js";
 import { AssemblyAI } from "assemblyai";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "../../components/ui/resizable";
 import { TiCancel, TiDeleteOutline, TiEdit, TiTick } from "react-icons/ti";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

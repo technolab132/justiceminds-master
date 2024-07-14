@@ -16,10 +16,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import LoadingComponent from "@/components/LoadingComponent";
-import PublicLogin from "@/components/PublicLogin";
-import ALogin from "@/components/AgencyLogin";
+} from "../../components/ui/accordion";
+import LoadingComponent from "../../components/LoadingComponent";
+// import PublicLogin from "@/components/PublicLogin";
+import ALogin from "../../components/AgencyLogin";
 
 const Agencies = () => {
   const router = useRouter();

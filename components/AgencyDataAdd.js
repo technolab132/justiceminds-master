@@ -183,7 +183,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
-import Login from "@/components/Login";
+import Login from "./Login";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 import LoadingComponent from "./LoadingComponent";
@@ -194,7 +194,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "./ui/accordion";
 // import { FaXmark } from "react-icons/fa6";
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,

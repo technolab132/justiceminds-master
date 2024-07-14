@@ -50,18 +50,20 @@ export default async function handler(req, res) {
 
   try {
     const cookies = cookie.parse(req.headers.cookie || '');
-    const { accessToken, refreshToken } = cookies;
-
+    const accessToken = cookies.access_token;
+    const refreshToken = cookies.refresh_token;
+    console.log('accessToken',accessToken);
     if (!accessToken || !refreshToken) {
       return res.status(401).json({ error: 'No OAuth tokens found' });
     }
-
+    console.log('accessToken',accessToken);
     const label = req.query.label;
 
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET
     );
+    
     oauth2Client.setCredentials({
       access_token: accessToken,
       refresh_token: refreshToken,

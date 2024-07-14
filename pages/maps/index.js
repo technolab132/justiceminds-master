@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 // import MarkmapHooks from './markmap-hooks';
 import MarkmapClass from "../../components/markmap-class";
 import MarkmapHooks from "../../components/markmap-hooks";
-import Navbar from "@/components/Navbar";
-import LoadingComponent from "@/components/LoadingComponent";
+import Navbar from "../../components/Navbar";
+import LoadingComponent from "../../components/LoadingComponent";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
-import Login from "@/components/Login";
+import Login from "../../components/Login";
 const index = () => {
   const [type, setType] = useState("hooks");
 

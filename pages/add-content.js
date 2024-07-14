@@ -3,7 +3,7 @@ import copy from "clipboard-copy";
 import { createClient } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
-import Login from "@/components/Login";
+import Login from "../components/Login";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 const JoditEditor = dynamic(() => import("jodit-react"), {

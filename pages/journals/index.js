@@ -4,9 +4,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "../../components/LoadingComponent";
 import { useRouter } from "next/router";
-import Navbar from "@/components/Navbar";
+import Navbar from "../../components/Navbar";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;

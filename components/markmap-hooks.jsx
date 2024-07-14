@@ -148,7 +148,7 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "./ui/resizable";
 
 const transformer = new Transformer();
 const initValue = "";

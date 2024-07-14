@@ -385,9 +385,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClient } from "@supabase/supabase-js";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "../../../components/LoadingComponent";
 import dynamic from "next/dynamic";
-import Login from "@/components/Login";
+import Login from "../../../components/Login";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 const JoditEditor = dynamic(() => import("jodit-react"), {

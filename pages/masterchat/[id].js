@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { createClient } from "@supabase/supabase-js";
-import LoadingComponent from "@/components/LoadingComponent";
+import LoadingComponent from "../../components/LoadingComponent";
 import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
-import PublicLogin from "@/components/PublicLogin";
+import PublicLogin from "../../components/PublicLogin";
 import { setCookie } from "nookies";
 import { parse } from "cookie";
 import { TiDeleteOutline, TiDocument, TiImage } from "react-icons/ti";
@@ -15,7 +15,7 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "../../components/ui/resizable";
 
 // import {
 //   AlertDialog,
