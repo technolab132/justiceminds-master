@@ -55,7 +55,7 @@ const Auth = () => {
       console.error('Error initiating OAuth:', error.message);
       // res.status(500).json({ error: error.message });
     }else {
-      router.push('/dashboard');
+     // router.push('/dashboard');
     }
     // router.push('/dashboard');
   };
