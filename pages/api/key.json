@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "summer-ranger-395010",
+  "private_key_id": "e2e279d6f7cf1bfee1f7e719b3d970cb5d1a456f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5JeX4EXmA8Euv\nN8/S6CZZws/dXbY1wlGH0ZaIy+amutvHczllZOgWvC7iT5QcDpl47ZnLAKh+XRYy\nznVYlX95Rc7z5YZo+0l2bdS6sBKQx3Gp5b9+3DvU7wSAZKT8JAs0t2A2cOHlVE9t\nBm6UrDFDAa4JW6QPYOWNFCXVJgg4yvQJBCklU1/A2mAqCnctBBw9tJjxvebLRIRJ\nENXN7W9enm1jpLxCIR2lLwgAxbxcFbfb2yv6e3VOcuDgx6P2pswR9KZ1DAdGn0Ob\nmQv046II4TPdrp8ew/hqI4fKtiJVbUTSGOzVvLfwFCP1AEnKrTAYZppn897wYtLp\nlwqNyaoZAgMBAAECggEADR0FzXzhW/RJDAM6NUArjTJ62f0r7WFSuHmr/YrhjoAQ\nFm+PCmMr/AY+lNlZjmYrUREVEjd895w8uQL99TT7dxmuZ4BjdXaM1LZBOarEWdxC\nbOvglQngs/ts2HIobFJaN9TgG+MBYOaIjJqGxQFwKMSK8M88jrlIcOZTKqZbsTfx\nyhGJb41HlPTIM6hZQI3agdTldBg2pym1FQ/WoJ9akqBZ0IquF2jVgmyvywUx1Myz\ns4fG6WQ1o6e+FWAjX5mnVD7b0OLm9E0K56DjpTFyRiQPh8Rqz6cTOpgJ48JULTBP\nD9reSby9CJq0UJFVzcJmC2xD5F3PuyA5EWx7dwR9HQKBgQDonKLirbkbq1wKdXJG\nQSH/6nfSe6ttOZ4VIw8MI7yPRNnji1xUfqHv6GoNK3wMwDy9nApNWIWYtWUlnUla\n7CKfRnj2MvQ3IYBFCMfb1/C9XqPd3Fc/gHSUlrisBL+3YF3wML8cr7zkdsN/9Cua\nHzRR7S4Y2vXuVKTnU/vY/OmEpQKBgQDLw46DXQyL5+sOtwEtWxAlI6ISse4Wt2xD\nZfy7HugUCnCWUKbKO194kFkJPm9gYkDwMulfu7kqaRQIfzlcEau1c8unqyiaCzpB\na+7NlIa3E88UFLrgYTjhfkaxl+0u9xLfwUYPmDP8C+wlI7g/tPJyVGbijiAIMGtc\ng1WgQVXxZQKBgQDdaQMOOwfgU3rXpbUxNBwVyWtmWTryS46yVd2j03xO7t1rXqJy\n9tpTTmlrwcFhLbZjUNzphGId2kO9yvog5nWKH/1Rc2zL8UJz84ixNNk8l5Howyv1\nEONm8BQ2AIswFDU2RGAVAR4OZRFvgM3j9OHLPbTMCddflQgl/OXTQ+FO1QKBgG1k\nX25G1iWGLLuJpCgla1WE+83tmFS5xHWqmzQaM54OvML2KZUIqwie9i3wRvsHxLUv\nn/q1XYNXRloJc1HqarTPpdYuHW4V+QCGYX4c7vX6vIGbX3h2uYLVuD4/wiYknw1h\nRau5mq8F95E4zAHnswGOLm4Svz+mPv07xQx0Bx/BAoGBAKvsftrkK1pllwihvpAk\n/2ZhOWde+dKcOsOJv8IJ7HkSeShQ/zdu3qjyYI0yYhQyJm7DZJaKUvjZfG/sfpRZ\nT2afIOlIBKV0mRgeTbD5N3zw2L/AUYwSPcBroZnt8Ckh9zl0js4hUWnt6V420XPJ\nWgPgxoEieSRNs+RNTQY6jMx6\n-----END PRIVATE KEY-----\n",
+  "client_email": "justicemindskrishna@summer-ranger-395010.iam.gserviceaccount.com",
+  "client_id": "105719992033951133403",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/justicemindskrishna%40summer-ranger-395010.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
