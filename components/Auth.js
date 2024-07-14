@@ -42,7 +42,7 @@ const Auth = () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`, // Set the redirect URL
+        redirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_URL}/auth/callback`, // Set the redirect URL
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
