@@ -72,14 +72,29 @@ export default async function handler(req, res) {
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     const gmailResponse = await gmail.users.messages.list({ userId: 'me', q: `label:${label}` });
 
-    const emails = await Promise.all(
+    const uniqueClients = new Map();
+
+    await Promise.all(
       gmailResponse.data.messages.map(async (message) => {
         const email = await gmail.users.messages.get({ userId: 'me', id: message.id });
-        return email.data;
+        const headers = email.data.payload.headers;
+        const fromHeader = headers.find(header => header.name === 'From');
+        if (fromHeader) {
+          // Extract name and email address from the "From" header
+          const nameEmailMatch = fromHeader.value.match(/(.+?)\s*<(.+?)>/);
+          if (nameEmailMatch) {
+            const name = nameEmailMatch[1].trim();
+            const emailAddress = nameEmailMatch[2];
+            uniqueClients.set(emailAddress, name);
+          } else {
+            const emailAddress = fromHeader.value.match(/<(.+?)>/)[1];
+            uniqueClients.set(emailAddress, '');
+          }
+        }
       })
     );
 
-    res.status(200).json({ emails });
+    res.status(200).json({ uniqueClients: Array.from(uniqueClients.entries()).map(([email, name]) => ({ email, name })) });
   } catch (error) {
     console.error('Error fetching emails:', error);
     res.status(500).json({ error: 'Internal Server Error' });

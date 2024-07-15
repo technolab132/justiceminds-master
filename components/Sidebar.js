@@ -3,14 +3,14 @@ import React, { useEffect, useState } from "react";
 const Sidebar = ({ data, activeNameId, onSelectName }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const filteredNames = data.filter((item) => {
-    const headers = item.payload.headers;
-    const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
-    const from = fromHeader ? fromHeader.value : '';
-    return from.toLowerCase().includes(searchTerm.toLowerCase());
-  }
-  );
-  console.log('data',filteredNames);
+  // const filteredNames = data.filter((item) => {
+  //   const headers = item.payload.headers;
+  //   const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
+  //   const from = fromHeader ? fromHeader.value : '';
+  //   return from.toLowerCase().includes(searchTerm.toLowerCase());
+  // }
+  // );
+  console.log('data',data);
   useEffect(() => {
     setLoading(true);
     setTimeout(() => {
@@ -82,20 +82,20 @@ const Sidebar = ({ data, activeNameId, onSelectName }) => {
               </button>
             </>
           ))} */}
-          {filteredNames.map((item, index) => {
+          {data.map((item, index) => {
             // Safely extract the name from the "from" field
-            let name = "Unknown";
-            let email = "Unknown";
-            const headers = item.payload.headers;
-            const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
-            if (fromHeader) {
-              const fromParts = fromHeader.value.split('<');
-              name = fromParts[0].trim();
-              if(fromParts.length > 1){
-                email = fromParts[1];
-              }
+            // let name = "Unknown";
+            // let email = "Unknown";
+            // const headers = item.payload.headers;
+            // const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
+            // if (fromHeader) {
+            //   const fromParts = fromHeader.value.split('<');
+            //   name = fromParts[0].trim();
+            //   if(fromParts.length > 1){
+            //     email = fromParts[1];
+            //   }
               
-            }
+            // }
             return (
               <button
                 className={`dark:hover:bg-[#1c1c1c] hover:bg-[#e6e6e6] ${
@@ -119,10 +119,10 @@ const Sidebar = ({ data, activeNameId, onSelectName }) => {
                   style={{ wordBreak: "break-word" }}
                   className="dark:text-[#d5d5d5] text-[#454545] text-[17px] text-pretty"
                 >
-                  {name}
+                  {item.name}
                 </strong>
                 <br />
-                <p style={{ wordBreak: "break-word" }} className="text-pretty text-gray-500">{email}</p>
+                <p style={{ wordBreak: "break-word" }} className="text-pretty text-gray-500">{item.email}</p>
               </button>
             );
           })}

@@ -213,23 +213,23 @@ const Home = () => {
     
     const selectedRow = data;
     console.log(selectedRow)
-    let name = "Unknown";
-    let email = "Unknown";
-    const headers = selectedRow.payload.headers;
-    const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
-    if (fromHeader) {
-      const fromParts = fromHeader.value.split('<');
-      console.log(fromParts);
-      name = fromParts[0].trim();
-      const fromParts1 = fromParts[1].split('>');
-      if(fromParts.length > 1){
-        email = fromParts1[0];
-      }
+    // let name = "Unknown";
+    // let email = "Unknown";
+    // const headers = selectedRow.payload.headers;
+    // const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
+    // if (fromHeader) {
+    //   const fromParts = fromHeader.value.split('<');
+    //   console.log(fromParts);
+    //   name = fromParts[0].trim();
+    //   const fromParts1 = fromParts[1].split('>');
+    //   if(fromParts.length > 1){
+    //     email = fromParts1[0];
+    //   }
       
-    }
+    // }
     const selectedData = {
-      'Email': email,
-      'Name': name,
+      'Email': selectedRow.email,
+      'Name': selectedRow.name,
 
     }
     setSelectedName(selectedData);
@@ -240,7 +240,7 @@ const Home = () => {
     // const { data, error } = supabase.from('EmailData').select('*').eq("email", )
 
     try {
-      const Receivedresponse = await fetch(' /api/filter-emails?sender='+ email+'&label=INBOX&type=RECIEVE');
+      const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=INBOX&type=RECIEVE');
       const { emails: receivedEmails, error: semailError } = await Receivedresponse.json();
 
       if (Receivedresponse.ok) {
@@ -256,7 +256,7 @@ const Home = () => {
       } else {
         setError(data.error);
       }
-      const Sentresponse = await fetch(' /api/filter-emails?sender='+ email+'&label=SENT&type=SENT');
+      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
       const { emails: SentEmails, error} = await Sentresponse.json();
 
       if (Sentresponse.ok) {
@@ -468,7 +468,7 @@ const Home = () => {
         const data = await response.json();
 
         if (response.ok) {
-          setEmails(data.emails);
+          setEmails(data.uniqueClients);
         } else {
           setError(data.error);
         }
