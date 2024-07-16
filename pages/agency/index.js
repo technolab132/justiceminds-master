@@ -11,7 +11,7 @@ import Navbar from "../../components/Navbar";
 import AgencyDataAdd from "../../components/AgencyDataAdd";
 import { TiDeleteOutline } from "react-icons/ti";
 import LoadingComponent from "../../components/LoadingComponent";
-
+import withAuth from "../../utils/withAuth";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -34,21 +34,21 @@ const Index = () => {
   const [csvInput, setCsvInput] = useState("");
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-  };
+  // const handleLoginSuccess = () => {
+  //   setIsLoggedIn(true);
+  // };
 
-  const handleLogout = () => {
-    // Set the "isLoggedIn" cookie to expire immediately
-    setCookie(null, "isLoggedIn", "true", { maxAge: -1 });
-    setIsLoggedIn(false);
-  };
+  // const handleLogout = () => {
+  //   // Set the "isLoggedIn" cookie to expire immediately
+  //   setCookie(null, "isLoggedIn", "true", { maxAge: -1 });
+  //   setIsLoggedIn(false);
+  // };
 
-  useEffect(() => {
-    // Parse the cookie after the page is mounted
-    const cookies = parse(document.cookie);
-    setIsLoggedIn(cookies.isLoggedIn === "true");
-  }, []);
+  // useEffect(() => {
+  //   // Parse the cookie after the page is mounted
+  //   const cookies = parse(document.cookie);
+  //   setIsLoggedIn(cookies.isLoggedIn === "true");
+  // }, []);
 
   // useEffect(() => {
   //   const checkAgencyExisitence = async () => {
@@ -220,7 +220,7 @@ const Index = () => {
 
   return (
     <>
-      {isLoggedIn ? (
+      {/* {isLoggedIn ? ( */}
         <>
           <Navbar />
           <ResizablePanelGroup
@@ -378,11 +378,11 @@ const Index = () => {
           ))}
         </div> */}
         </>
-      ) : (
-        <Login onSuccess={handleLoginSuccess} />
-      )}
+      {/* // ) : (
+      //   <Login onSuccess={handleLoginSuccess} />
+      // )} */}
     </>
   );
 };
 
-export default Index;
+export default withAuth(Index);

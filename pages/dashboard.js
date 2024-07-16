@@ -480,6 +480,21 @@ const Home = () => {
 
     getEmails();
   }, []);
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/fetchby-name?name=${searchTerm}`);
+      const data = await response.json();
+      setEmails(data.uniqueClients);
+    } catch (error) {
+      console.error('Error fetching emails:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (selectedName) {
       setActiveNameId(selectedName.id);
@@ -592,11 +607,51 @@ const Home = () => {
           <button onClick={handleLoadMore}>Load More</button>
         )}
       </div> */}
-                  <Sidebar
+                <div>
+                <div style={{ display: 'flex', width: '100%', marginTop: '15px', marginBottom:'10px',marginLeft:'1px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search by name"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                      padding: "10px",
+                      flex: 1,
+                      marginRight: "5px",
+                      border: "1px solid #1c1c1c",
+                      borderRadius: "5px",
+                    }}
+                    className="bg-white dark:bg-black text-black dark:text-gray-600"
+                  />
+                  <button
+                    onClick={handleSearch}
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #1c1c1c",
+                      borderRadius: "5px",
+                      background: "#1c1c1c",
+                      color: "#fff",
+                    }}
+                    className="dark:bg-[#1c1c1c] bg-black text-white"
+                  >
+                    Search
+                  </button>
+                </div>
+                  {loading ? (
+                    <p>Loading . . .</p>
+                  ) : (
+                    <Sidebar
+                      data={emails}
+                      activeNameId={activeNameId}
+                      onSelectName={handleSelectName}
+                    />
+                  )}
+                </div>
+                  {/* <Sidebar
                     data={emails}
                     activeNameId={activeNameId}
                     onSelectName={handleSelectName}
-                  />
+                  /> */}
                   </>
                 )}
               </div>

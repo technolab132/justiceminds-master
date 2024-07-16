@@ -272,16 +272,16 @@ const DetailPanel = ({
       setIsCopied(false);
     }, 2000);
   };
-  // const handleCopyEmb = () => {
-  //   copy(`https://justice-minds.com/${selectedData["Email"]}`);
+  const handleCopyEmb = () => {
+    copy(`https://justice-minds.com/${selectedData["Email"]}`);
 
-  //   setIsCopied(true);
+    setIsCopied(true);
 
-  //   // Reset the copied state after a few seconds
-  //   setTimeout(() => {
-  //     setIsCopied(false);
-  //   }, 2000);
-  // };
+    // Reset the copied state after a few seconds
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
+  };
 
   const handleToggleMessage = (email) => {
     setShowFullMessages((prevShowFullMessages) => {
