@@ -82,13 +82,16 @@ export default async function handler(req, res) {
         if (fromHeader) {
           // Extract name and email address from the "From" header
           const nameEmailMatch = fromHeader.value.match(/(.+?)\s*<(.+?)>/);
-          if (nameEmailMatch) {
+          if (nameEmailMatch && nameEmailMatch.length === 3) {
             const name = nameEmailMatch[1].trim();
             const emailAddress = nameEmailMatch[2];
             uniqueClients.set(emailAddress, name);
           } else {
-            const emailAddress = fromHeader.value.match(/<(.+?)>/)[1];
-            uniqueClients.set(emailAddress, '');
+            const emailAddressMatch = fromHeader.value.match(/<(.+?)>/);
+            if (emailAddressMatch && emailAddressMatch.length === 2) {
+              const emailAddress = emailAddressMatch[1];
+              uniqueClients.set(emailAddress, '');
+            }
           }
         }
       })
