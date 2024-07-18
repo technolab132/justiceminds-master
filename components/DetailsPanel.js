@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../components/ui/accordion";
-import { jsPDF } from 'jspdf';
+
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
