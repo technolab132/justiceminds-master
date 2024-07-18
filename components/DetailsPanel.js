@@ -14,6 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../components/ui/accordion";
+import { jsPDF } from 'jspdf';
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
@@ -101,6 +102,7 @@ const DetailPanel = ({
   //   }
   //   setisLoading(false);
   // }, [selectedData["Email"]]);
+  
 
   // Function to open the PDF viewer
   // const openPdfViewer = (link) => {
@@ -350,11 +352,26 @@ const DetailPanel = ({
     try {
       const blob = new Blob([pdfData], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      setisLoading(true);
+      setPdfLink(url);
+      setShowPdfViewer(true);
+      setTimeout(() => {
+        setisLoading(false);
+      }, 3000);
+      // setisLoading(false)
     } catch (error) {
       console.error('Error creating PDF blob or URL:', error);
       // Handle error appropriately
     }
+  };
+  const extractUrlsFromText = (text) => {
+    const urlPattern = /(https?:\/\/[^\s]+)/g;
+    return text.match(urlPattern);
+  };
+  const [bodyFormat, setBodyFormat] = useState({}); // State to store body format for each email
+
+  const handleToggleFormat = (emailId, format) => {
+    setBodyFormat(prevState => ({ ...prevState, [emailId]: format }));
   };
   return (
     <div style={{ lineHeight: "2rem", overflowY: "scroll", height: "90vh" }}>
@@ -447,32 +464,31 @@ const DetailPanel = ({
                 <span> {sentEmails?.length + receivedEmails?.length}</span>
               )}
             </p>
-            <p className="text-black dark:text-white">
-              <span className="dark:text-[#d5d5d5] text-[#828282]">Date of First Email Sent</span>{" "}
-              :
-              {loading ? (
-                <span> Fetching . . . </span>
-              ) : (
-                <span className="">
-                  {" "}
-                  {new Date(sentEmails[sentEmails.length - 1]?.payload.headers[1].value).toLocaleString()}
-                </span>
-              )}
-            </p>
-            <p className="text-black dark:text-white">
-              <span className="dark:text-[#d5d5d5] text-[#828282]">Date of Last Email Sent</span>{" "}
-              :
-              {loading ? (
-                <span> Fetching . . . </span>
-              ) : (
-                <span>
-                  {" "}
-                  {new Date(
-                    sentEmails[0]?.payload.headers[1].value
-                  ).toLocaleString()}
-                </span>
-              )}
-            </p>
+            {/* Conditionally render Date of First and Last Email Sent */}
+            {sentEmails.length > 0 && (
+              <>
+                <p className="text-black dark:text-white">
+                  <span className="dark:text-[#d5d5d5] text-[#828282]">Date of First Email Sent</span>:
+                  {loading ? (
+                    <span> Fetching . . . </span>
+                  ) : (
+                    <span className="">
+                      {new Date(sentEmails[sentEmails.length - 1]?.payload.headers[1].value).toLocaleString()}
+                    </span>
+                  )}
+                </p>
+                <p className="text-black dark:text-white">
+                  <span className="dark:text-[#d5d5d5] text-[#828282]">Date of Last Email Sent</span>:
+                  {loading ? (
+                    <span> Fetching . . . </span>
+                  ) : (
+                    <span>
+                      {new Date(sentEmails[0]?.payload.headers[1].value).toLocaleString()}
+                    </span>
+                  )}
+                </p>
+              </>
+            )}
             {publicview === true ? (
               <></>
             ) : (
@@ -602,171 +618,27 @@ const DetailPanel = ({
             <div style={{ padding: "0px 30px 30px 30px" }}>
               {activeTab === "sent" && (
                 <ul className="">
-                  {/* {sentEmails.map((email, index) => (
-                    <Accordion
-                      key={index}
-                      type={"single"}
-                      collapsible
-                      className="w-full"
-                    >
-                      <AccordionItem
-                        className="text-md border-0 mb-2"
-                        value={index + 1}
-                      >
-                        <div className="flex justify-between gap-2">
-
-                          <table className="">
-                            <tr className="text-sm">
-                              <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                {new Date(email["SENT"]).toLocaleString()}
-                              </td>
-                              <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                {email["SUBJECT"]}
-                              </td>
-                              <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                
-                                <button
-                                  onClick={() =>
-                                    openPdfViewer(
-                                      `https://drive.google.com/file/d/${
-                                        email.PDFLINK?.match(
-                                          /\/d\/([a-zA-Z0-9_-]+)\//
-                                        )[1]
-                                      }/preview`
-                                    )
-                                  }
-                                >
-                                  View PDF
-                                </button>
-                              </td>
-                            </tr>
-                          </table>
-                          <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-black p-3 rounded-lg w-full"></AccordionTrigger>
-                        </div>
-                        <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
-                        <li
-                          className="rounded-md dark:bg-[#111111] bg-white text-black"
-                          style={{
-                            padding: "20px",
-                            marginBottom: "20px",
-                          }}
-                          key={index}
-                        >
-                          <strong className="dark:text-[#d5d5d5] text-[#828282]">From : </strong>{" "}
-                          {email["FROM"]} <br />
-                          <strong className="dark:text-[#d5d5d5] text-[#828282]">To : </strong>{" "}
-                          {email["TO"]} <br /> <br />
-                          <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF : </strong>{" "}
-                          <button
-                            onClick={() =>
-                              openPdfViewer(
-                                `https://drive.google.com/file/d/${
-                                  email.PDFLINK?.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]
-                                }/preview`
-                              )
-                            }
-                          >
-                            View PDF
-                          </button>{" "}
-                          <br />
-                          <br />
-                          {`--------------------------------`}
-                          <br />
-                          <strong className="dark:text-[#d5d5d5] text-[#828282]">Message : </strong>
-                          {""}
-                          {email["PDFLINK"] === null ? (
-                            <p>No Message</p>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                handleExtractText(
-                                  `https://drive.google.com/uc?id=${
-                                    email.PDFLINK?.match(
-                                      /\/d\/([a-zA-Z0-9_-]+)\//
-                                    )[1]
-                                  }`,
-                                  index,
-                                  "sent"
-                                )
-                              }
-                            >
-                              Show Full Message
-                            </button>
-                          )}
-                          {extractedTexts[`sent_${index}`] && (
-                            <div className="dark:bg-black bg-white"
-                              style={{
-                                padding: 20,
-                                marginTop: 10,
-                                borderRadius:"10px"
-                              }}
-                            >
-                              {extractedUrls[`sent_${index}`] ? (
-                                <>
-                                  <p className="text-green-500 text-xl">
-                                    Links Found in the Mail . . .
-                                  </p>
-                                  {`------------------`}
-                                  {extractedUrls[`sent_${index}`]?.map((url) => (
-                                    <p
-                                      style={{
-                                        whiteSpace: "pre-wrap",
-                                        color: "#fff",
-                                      }}
-                                    >
-                                      <a
-                                        target="_blank"
-                                        className="underline"
-                                        href={url}
-                                      >
-                                        {url}
-                                      </a>
-                                      <br />
-                                    </p>
-                                  ))}
-                                  {`------------------`}
-                                </>
-                              ) : (
-                                <>
-                                  <p className="text-xl text-yellow-500">
-                                    No Inner Links Found . . .
-                                  </p>
-                                  {`------------------`}
-                                </>
-                              )}
-                              <p className="text-black dark:text-white"
-                                style={{
-                                  whiteSpace: "pre-wrap",
-                                  wordWrap: "break-word",
-                                  marginTop: "-60px",
-                                  marginBottom: "50px",
-                                }}
-                              >
-                                {extractedTexts[`sent_${index}`]}
-                              </p>
-                            </div>
-                          )}
-                          {currentlyExtractingEmailIndex === index &&
-                            loadingtext && <p>Loading . .</p>}
-                          <br />
-                        </li>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                    
-                  ))} */}
+                  
                   {sentEmails.map((email, index) => {
                     const headers = email.payload.headers;
                     const fromHeader = headers.find(header => header.name === 'From');
                     const toHeader = headers.find(header => header.name === 'To');
                     const subjectHeader = headers.find(header => header.name === 'Subject');
                     const dateHeader = headers.find(header => header.name === 'Date');
-                    const bodyPart = email.payload?.parts.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
-                    const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    const pdfPart = email.payload.parts.find(part => part.mimeType === 'application/pdf');
+                    const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
+                    //const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
                     const emailId = headers.find(header => header.name === 'Message-ID').value;
                     console.log('emailid',emailId);
+
+                    const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
+                    const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
+
+                    const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    
+                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
                         try {
@@ -779,6 +651,8 @@ const DetailPanel = ({
                         }
                       }
                     };
+                    const urlsInBody = extractUrlsFromText(bodyData);
+                    console.log('urls',urlsInBody);
                     return (
                       <Accordion key={index} type={"single"} collapsible className="w-full">
                         <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
@@ -792,13 +666,7 @@ const DetailPanel = ({
                                   <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                     {subjectHeader.value}
                                   </td>
-                                  <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                  {pdfAttachmentId && (
-                                    <button onClick={handleViewPdf}>
-                                      View PDF
-                                    </button>
-                                  )}
-                                  </td>
+                                  
                                 </tr>
                               </tbody>
                             </table>
@@ -809,22 +677,64 @@ const DetailPanel = ({
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
-                              {pdfLink ? (
-                                <button onClick={() => openPdfViewer(`https://drive.google.com/file/d/${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}/preview`)}>
-                                  View PDF
-                                </button>
-                              ) : 'No PDF'}
+                              {pdfAttachmentId && (
+                                    <button onClick={handleViewPdf}>
+                                      View PDF
+                                    </button>
+                                  )}
                               <br /><br />
                               {`--------------------------------`}
                               <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
-                              {bodyData !== 'No Message' ? (
+                              <div className="flex gap-2 mb-2">
+                                <button onClick={() => handleToggleFormat(emailId, 'text/plain')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                  Show Text
+                                </button>
+                                <button onClick={() => handleToggleFormat(emailId, 'text/html')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                  Show HTML
+                                </button>
+                              </div>
+                              <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                {urlsInBody && urlsInBody.length > 0 && (
+                                  <>
+                                    <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
+                                    {`------------------`}
+                                    {urlsInBody.map((url, urlIndex) => (
+                                      <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                      </p>
+                                    ))}
+                                    {`------------------`}
+                                  </>
+                                )}
+                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                  {bodyData}
+                                </p>
+                              </div>
+                              {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                  {bodyData}
+                                </p>
+                                {urlsInBody && urlsInBody.length > 0 && (
+                                  <>
+                                    <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
+                                    {`------------------`}
+                                    {urlsInBody.map((url, urlIndex) => (
+                                      <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                      </p>
+                                    ))}
+                                    {`------------------`}
+                                  </>
+                                )}
+                              </div> */}
+                              {/* {bodyData !== 'No Message' ? (
                                 <button onClick={() => handleExtractText(`https://drive.google.com/uc?id=${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}`, index, "sent")}>
                                   Show Full Message
                                 </button>
                               ) : (
                                 <p>No Message</p>
-                              )}
+                              )} */}
                               {extractedTexts[`sent_${index}`] && (
                                 <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                   {extractedUrls[`sent_${index}`] ? (
@@ -870,10 +780,18 @@ const DetailPanel = ({
                     const subjectHeader = headers.find(header => header.name === 'Subject');
                     const dateHeader = headers.find(header => header.name === 'Date');
                     const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
-                    const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    const pdfPart = email.payload.parts.find(part => part.mimeType === 'application/pdf');
+                    //const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
                     const emailId = email.id;//headers.find(header => header.name === 'Message-ID').value;
+
+                    const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
+                    const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
+
+                    const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    
+                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
                     console.log('emailid',emailId);
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
@@ -887,6 +805,8 @@ const DetailPanel = ({
                         }
                       }
                     };
+                    const urlsInBody = extractUrlsFromText(bodyData);
+                    console.log('urls',urlsInBody);
                     return (
                       <Accordion key={index} type={"single"} collapsible className="w-full">
                         <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
@@ -900,13 +820,13 @@ const DetailPanel = ({
                                   <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                     {subjectHeader.value}
                                   </td>
-                                  <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                  {/* <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                   {pdfAttachmentId && (
                                     <button onClick={handleViewPdf}>
                                       View PDF
                                     </button>
                                   )}
-                                  </td>
+                                  </td> */}
                                 </tr>
                               </tbody>
                             </table>
@@ -917,23 +837,64 @@ const DetailPanel = ({
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
-                              {pdfLink ? (
+                              {pdfAttachmentId && (
+                                    <button onClick={handleViewPdf}>
+                                      View PDF
+                                    </button>
+                                  )}
+                              {/* {pdfLink ? (
                                 <button onClick={() => openPdfViewer(`https://drive.google.com/file/d/${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}/preview`)}>
                                   View PDF
                                 </button>
-                              ) : 'No PDF'}
+                              ) : 'No PDF'} */}
                               <br /><br />
                               {`--------------------------------`}
                               <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
-                              {bodyData !== 'No Message' ? (
-                                <button onClick={() => handleExtractText(`https://drive.google.com/uc?id=${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}`, index, "sent")}>
-                                  Show Full Message
+                              <div className="flex gap-2 mb-2">
+                                <button onClick={() => handleToggleFormat(emailId, 'text/plain')} className="p-2 bg-blue-500 text-white rounded">
+                                  Show Text
                                 </button>
-                              ) : (
-                                <p>No Message</p>
-                              )}
-                              {extractedTexts[`sent_${index}`] && (
+                                <button onClick={() => handleToggleFormat(emailId, 'text/html')} className="p-2 bg-green-500 text-white rounded">
+                                  Show HTML
+                                </button>
+                              </div>
+                              <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                {urlsInBody && urlsInBody.length > 0 && (
+                                  <>
+                                    <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
+                                    {`------------------`}
+                                    {urlsInBody.map((url, urlIndex) => (
+                                      <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                      </p>
+                                    ))}
+                                    {`------------------`}
+                                  </>
+                                )}
+                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                  {bodyData}
+                                </p>
+                              </div>
+                              {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                {urlsInBody && urlsInBody.length > 0 && (
+                                  <>
+                                    <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
+                                    {`------------------`}
+                                    {urlsInBody.map((url, urlIndex) => (
+                                      <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                      </p>
+                                    ))}
+                                    {`------------------`}
+                                  </>
+                                )}
+                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                  {bodyData}
+                                </p>
+                                
+                              </div> */}
+                              {/* {extractedTexts[`sent_${index}`] && (
                                 <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                   {extractedUrls[`sent_${index}`] ? (
                                     <>
@@ -957,7 +918,7 @@ const DetailPanel = ({
                                   </p>
                                 </div>
                               )}
-                              {currentlyExtractingEmailIndex === index && loadingtext && <p>Loading . .</p>}
+                              {currentlyExtractingEmailIndex === index && loadingtext && <p>Loading . .</p>} */}
                               <br />
                             </li>
                           </AccordionContent>
@@ -1135,32 +1096,124 @@ const DetailPanel = ({
                         <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Pdf Link</td>
                       </tr>
                       <p className="p-2 text-green-500">Sent</p>
-                      {sentEmails.map((email, index) => (
-                        <>
-                          <tr key={index} className="">
-                            <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                              {email["SENT"]}
-                            </td>
-                            <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white">
-                              <button
-                                onClick={() =>
-                                  openPdfViewer(
-                                    `https://drive.google.com/file/d/${
-                                      email["PDFLINK"]?.match(
-                                        /\/d\/([a-zA-Z0-9_-]+)\//
-                                      )[1]
-                                    }/preview`
-                                  )
-                                }
-                              >
-                                {email["SUBJECT"]}
-                              </button>
-                            </td>
-                          </tr>
-                        </>
-                      ))}
+                      {sentEmails.map((email, index) => {
+                        const headers = email.payload.headers;
+                        const fromHeader = headers.find(header => header.name === 'From');
+                        const toHeader = headers.find(header => header.name === 'To');
+                        const subjectHeader = headers.find(header => header.name === 'Subject');
+                        const dateHeader = headers.find(header => header.name === 'Date');
+                        const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
+                        const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                        const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                        const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        console.log('emailid',emailId);
+                        const handleViewPdf = async () => {
+                          if (pdfAttachmentId) {
+                            try {
+                              const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                              const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                              openPdfViewer(pdfData);
+                            } catch (error) {
+                              console.error('Error fetching or decoding PDF:', error);
+                              // Handle error appropriately, e.g., show error message to user
+                            }
+                          }
+                        };
+                        if(pdfAttachmentId){
+                          return(
+                          <>
+                            <tr key={index} className="">
+                              <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
+                                {new Date(dateHeader.value).toLocaleString()}
+                                {/* {email["SENT"]} */}
+                              </td>
+                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
+                                {pdfAttachmentId && (
+                                        <button onClick={handleViewPdf}>
+                                          {subjectHeader.value}
+                                        </button>
+                                      )}
+                                {/* <button
+                                  onClick={() =>
+                                    openPdfViewer(
+                                      `https://drive.google.com/file/d/${
+                                        email["PDFLINK"]?.match(
+                                          /\/d\/([a-zA-Z0-9_-]+)\//
+                                        )[1]
+                                      }/preview`
+                                    )
+                                  }
+                                >
+                                  {email["SUBJECT"]}
+                                </button> */}
+                              </td>
+                            </tr>
+                          </>
+                          )
+                        }
+                        return null;
+                    })}
                       <p className="p-3 text-green-500">Received</p>
-                      {receivedEmails.map((email, index) => (
+                      {receivedEmails.map((email, index) => {
+                        const headers = email.payload.headers;
+                        const fromHeader = headers.find(header => header.name === 'From');
+                        const toHeader = headers.find(header => header.name === 'To');
+                        const subjectHeader = headers.find(header => header.name === 'Subject');
+                        const dateHeader = headers.find(header => header.name === 'Date');
+                        const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
+                        const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                        const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                        const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        console.log('emailid',emailId);
+                        const handleViewPdf = async () => {
+                          if (pdfAttachmentId) {
+                            try {
+                              const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                              const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                              openPdfViewer(pdfData);
+                            } catch (error) {
+                              console.error('Error fetching or decoding PDF:', error);
+                              // Handle error appropriately, e.g., show error message to user
+                            }
+                          }
+                        };
+                        if(pdfAttachmentId){
+                          return(
+                          <>
+                            <tr key={index} className="">
+                              <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
+                                {new Date(dateHeader.value).toLocaleString()}
+                                {/* {email["SENT"]} */}
+                              </td>
+                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
+                                {pdfAttachmentId && (
+                                        <button onClick={handleViewPdf}>
+                                          {subjectHeader.value}
+                                        </button>
+                                      )}
+                                {/* <button
+                                  onClick={() =>
+                                    openPdfViewer(
+                                      `https://drive.google.com/file/d/${
+                                        email["PDFLINK"]?.match(
+                                          /\/d\/([a-zA-Z0-9_-]+)\//
+                                        )[1]
+                                      }/preview`
+                                    )
+                                  }
+                                >
+                                  {email["SUBJECT"]}
+                                </button> */}
+                              </td>
+                            </tr>
+                          </>
+                          )
+                        }
+                        return null;
+                    })}
+                      {/* {receivedEmails.map((email, index) => (
                         <tr className="dark:text-white text-black">
                           <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">{email["SENT"]}</td>
                           <td className="p-2 dark:border-[#393939] border-[#aaaaaa]">
@@ -1179,7 +1232,7 @@ const DetailPanel = ({
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      ))} */}
                     </table>
 
                     <br />
@@ -1188,7 +1241,7 @@ const DetailPanel = ({
               )}
               {activeTab === "innerlinks" && (
                 <ul className="">
-                  {sentEmails.map((email, index) => (
+                  {/* {sentEmails.map((email, index) => (
                     <li className="text-black dark:text-gray-300"
                       style={{
                         padding: "20px",
@@ -1355,7 +1408,128 @@ const DetailPanel = ({
                         loadingtext && <p>Loading . .</p>}
                       <br />
                     </li>
-                  ))}
+                  ))} */}
+                  <>
+                    <table className="text-sm">
+                      <tr className="text-black dark:text-white">
+                        <td className="p-2 border-1 font-semibold dark:border-[#393939] border-[#aaaaaa]">Date</td>
+                        <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Subject Link</td>
+                        <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Inner Link</td>
+                      </tr>
+                      <p className="p-2 text-green-500">Sent</p>
+                      {sentEmails.map((email, index) => {
+                        const headers = email.payload.headers;
+                        const fromHeader = headers.find(header => header.name === 'From');
+                        const toHeader = headers.find(header => header.name === 'To');
+                        const subjectHeader = headers.find(header => header.name === 'Subject');
+                        const dateHeader = headers.find(header => header.name === 'Date');
+                        const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
+                        const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                        const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                        const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        console.log('emailid',emailId);
+                        const innerLinks = extractUrlsFromText(bodyData);
+                        
+                        if(innerLinks){
+                          return(
+                          <>
+                            <tr key={index} className="">
+                              <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
+                                {new Date(dateHeader.value).toLocaleString()}
+                                {/* {email["SENT"]} */}
+                              </td>
+                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
+                                {subjectHeader.value}
+                              </td>
+                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
+                              {innerLinks.length > 0 ? (
+                                <ul>
+                                  {innerLinks.map((link, linkIndex) => (
+                                    <li key={linkIndex}>
+                                      <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{link}</a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <span>No Inner Links Found</span>
+                              )}
+                              </td>
+                            </tr>
+                          </>
+                          )
+                        }
+                        return null;
+                    })}
+                      <p className="p-3 text-green-500">Received</p>
+                      {receivedEmails.map((email, index) => {
+                        const headers = email.payload.headers;
+                        const fromHeader = headers.find(header => header.name === 'From');
+                        const toHeader = headers.find(header => header.name === 'To');
+                        const subjectHeader = headers.find(header => header.name === 'Subject');
+                        const dateHeader = headers.find(header => header.name === 'Date');
+                        const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
+                        const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                        const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                        const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        console.log('emailid',emailId);
+                        const innerLinks = extractUrlsFromText(bodyData);
+                        
+                        if(innerLinks){
+                          return(
+                          <>
+                            <tr key={index} className="">
+                              <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
+                                {new Date(dateHeader.value).toLocaleString()}
+                                {/* {email["SENT"]} */}
+                              </td>
+                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
+                                {subjectHeader.value}
+                              </td>
+                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
+                              {innerLinks.length > 0 ? (
+                                <ul>
+                                  {innerLinks.map((link, linkIndex) => (
+                                    <li key={linkIndex}>
+                                      <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{link}</a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <span>No Inner Links Found</span>
+                              )}
+                              </td>
+                            </tr>
+                          </>
+                          )
+                        }
+                        return null;
+                    })}
+                      {/* {receivedEmails.map((email, index) => (
+                        <tr className="dark:text-white text-black">
+                          <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">{email["SENT"]}</td>
+                          <td className="p-2 dark:border-[#393939] border-[#aaaaaa]">
+                            <button
+                              onClick={() =>
+                                openPdfViewer(
+                                  `https://drive.google.com/file/d/${
+                                    email["PDFLINK"]?.match(
+                                      /\/d\/([a-zA-Z0-9_-]+)\//
+                                    )[1]
+                                  }/preview`
+                                )
+                              }
+                            >
+                              {email["SUBJECT"]}
+                            </button>
+                          </td>
+                        </tr>
+                      ))} */}
+                    </table>
+
+                    <br />
+                  </>
                 </ul>
               )}
               {activeTab === "messages" && (
