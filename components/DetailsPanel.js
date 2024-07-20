@@ -632,13 +632,49 @@ const DetailPanel = ({
                     const emailId = headers.find(header => header.name === 'Message-ID').value;
                     console.log('emailid',emailId);
 
-                    const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
-                    const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
+                    // const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
+                    // const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
 
-                    const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    // const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    // const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                     
-                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
+                    // const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
+                    // Helper function to decode base64 url-safe string
+                    const decodeBase64UrlSafe = (str) => {
+                      return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+                    };
+
+                    // Function to find and decode the text and HTML parts
+                    const getBodyData = (parts) => {
+                      let textBody = 'No Message';
+                      let htmlBody = 'No Message';
+
+                      if (parts) {
+                        parts.forEach(part => {
+                          if (part.mimeType === 'multipart/alternative' && part.parts) {
+                            part.parts.forEach(subPart => {
+                              if (subPart.mimeType === 'text/plain') {
+                                textBody = decodeBase64UrlSafe(subPart.body.data);
+                              } else if (subPart.mimeType === 'text/html') {
+                                htmlBody = decodeBase64UrlSafe(subPart.body.data);
+                              }
+                            });
+                          } else if (part.mimeType === 'text/plain') {
+                            textBody = decodeBase64UrlSafe(part.body.data);
+                          } else if (part.mimeType === 'text/html') {
+                            htmlBody = decodeBase64UrlSafe(part.body.data);
+                          }
+                        });
+                      }
+
+                      return { textBody, htmlBody };
+                    };
+
+                    // Get the body data from the email payload
+                    const { textBody, htmlBody } = getBodyData(email.payload.parts);
+
+                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBody : textBody;
+
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
                         try {
@@ -707,9 +743,17 @@ const DetailPanel = ({
                                     {`------------------`}
                                   </>
                                 )}
-                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                                  {bodyData}
-                                </p>
+                                {bodyFormat[emailId] === 'text/plain' ? (
+                                  <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                    {bodyData}
+                                  </p>
+                                ) : (
+                                  <div 
+                                    className="text-black dark:text-white" 
+                                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                                    dangerouslySetInnerHTML={{ __html: bodyData }} 
+                                  />
+                                )}
                               </div>
                               {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                 <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
@@ -785,13 +829,47 @@ const DetailPanel = ({
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
                     const emailId = email.id;//headers.find(header => header.name === 'Message-ID').value;
 
-                    const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
-                    const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
+                    // const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
+                    // const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
 
-                    const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    // const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                    // const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                     
-                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
+                    // const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
+                    const decodeBase64UrlSafe = (str) => {
+                      return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+                    };
+
+                    // Function to find and decode the text and HTML parts
+                    const getBodyData = (parts) => {
+                      let textBody = 'No Message';
+                      let htmlBody = 'No Message';
+
+                      if (parts) {
+                        parts.forEach(part => {
+                          if (part.mimeType === 'multipart/alternative' && part.parts) {
+                            part.parts.forEach(subPart => {
+                              if (subPart.mimeType === 'text/plain') {
+                                textBody = decodeBase64UrlSafe(subPart.body.data);
+                              } else if (subPart.mimeType === 'text/html') {
+                                htmlBody = decodeBase64UrlSafe(subPart.body.data);
+                              }
+                            });
+                          } else if (part.mimeType === 'text/plain') {
+                            textBody = decodeBase64UrlSafe(part.body.data);
+                          } else if (part.mimeType === 'text/html') {
+                            htmlBody = decodeBase64UrlSafe(part.body.data);
+                          }
+                        });
+                      }
+
+                      return { textBody, htmlBody };
+                    };
+
+                    // Get the body data from the email payload
+                    const { textBody, htmlBody } = getBodyData(email.payload.parts);
+
+                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBody : textBody;
                     console.log('emailid',emailId);
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
@@ -872,9 +950,17 @@ const DetailPanel = ({
                                     {`------------------`}
                                   </>
                                 )}
-                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                                  {bodyData}
-                                </p>
+                                {bodyFormat[emailId] === 'text/plain' ? (
+                                  <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                    {bodyData}
+                                  </p>
+                                ) : (
+                                  <div 
+                                    className="text-black dark:text-white" 
+                                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                                    dangerouslySetInnerHTML={{ __html: bodyData }} 
+                                  />
+                                )}
                               </div>
                               {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                 {urlsInBody && urlsInBody.length > 0 && (

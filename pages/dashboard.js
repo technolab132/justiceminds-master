@@ -106,45 +106,45 @@ const Home = () => {
   //   setIsLoggedIn(cookies.isLoggedIn === "true");
   // }, []); // Empty dependency array ensures this effect runs only once after mount
 
-  async function fetchAllData() {
-    const tableName = "Clients";
-    let offset = 0;
-    const pageSize = 1000; // You can adjust this based on your needs.
+  // async function fetchAllData() {
+  //   const tableName = "Clients";
+  //   let offset = 0;
+  //   const pageSize = 1000; // You can adjust this based on your needs.
 
-    let allRows = [];
+  //   let allRows = [];
 
-    while (true) {
-      const { data, error } = await supabase
-        .from(tableName)
-        .select("*")
-        .range(offset, offset + pageSize - 1);
+  //   while (true) {
+  //     const { data, error } = await supabase
+  //       .from(tableName)
+  //       .select("*")
+  //       .range(offset, offset + pageSize - 1);
 
-      if (error) {
-        console.error("Error fetching data:", error);
-        break;
-      }
-      console.log(data);
-      if (data.length === 0) {
-        // No more data to fetch
-        break;
-      }
+  //     if (error) {
+  //       console.error("Error fetching data:", error);
+  //       break;
+  //     }
+  //     console.log(data);
+  //     if (data.length === 0) {
+  //       // No more data to fetch
+  //       break;
+  //     }
 
-      allRows = allRows.concat(data);
-      offset += pageSize;
-    }
+  //     allRows = allRows.concat(data);
+  //     offset += pageSize;
+  //   }
 
-    return allRows;
-  }
+  //   return allRows;
+  // }
 
-  useEffect(() => {
-    // Fetch initial data from Supabase
-    async function fetchData() {
-      const allData = await fetchAllData();
-      setMasterData(allData);
-    }
+  // useEffect(() => {
+  //   // Fetch initial data from Supabase
+  //   async function fetchData() {
+  //     const allData = await fetchAllData();
+  //     setMasterData(allData);
+  //   }
 
-    fetchData();
-  }, []);
+  //   fetchData();
+  // }, []);
 
   const handleExtractText = async (pdfLink, index, type) => {
     try {
