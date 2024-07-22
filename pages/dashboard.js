@@ -247,7 +247,7 @@ const Home = () => {
         //setEmails(data.emails);
        // SentEmails = data.emails;
         // setSentEmails(SentEmails);
-        console.log('sent emails',emails);
+       // console.log('sent emails',emails);
         //setSentEmails(SentEmails);
         setReceivedEmails(receivedEmails);
         // setIncident(IncidentData);
@@ -260,12 +260,35 @@ const Home = () => {
       const { emails: SentEmails, error} = await Sentresponse.json();
 
       if (Sentresponse.ok) {
-        console.log('sent emails',emails);
+        //console.log('sent emails',emails);
         setSentEmails(SentEmails);
         setisLoading(false);
       } else {
         setError(data.error);
       }
+
+      // Fetch count of sent emails
+      const sentCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=SENT');
+      const sentData = await sentCountResponse.json();
+      
+      if (sentCountResponse.ok) {
+        //console.log('sent emails',emails);
+        setSentEmailCount(sentData.count);
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+      // Fetch count of received emails
+      const receivedCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=RECIEVE');
+      const receivedData = await receivedCountResponse.json();
+      if (receivedCountResponse.ok) {
+        //console.log('sent emails',emails);
+        setReceivedEmailCount(receivedData.count);
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+      
 
     } catch (err) {
       console.error('Error fetching emails:', err);
@@ -495,9 +518,37 @@ const Home = () => {
       setLoading(false);
     }
   };
+
+
+  const [sentEmailCount, setSentEmailCount] = useState(0);
+  const [receivedEmailCount, setReceivedEmailCount] = useState(0);
+  // const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEmailCounts = async () => {
+      try {
+        // Fetch count of sent emails
+        const sentResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=SENT');
+        const sentData = await sentResponse.json();
+        setSentEmailCount(sentData.count);
+
+        // Fetch count of received emails
+        const receivedResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=RECIEVE');
+        const receivedData = await receivedResponse.json();
+        setReceivedEmailCount(receivedData.count);
+      } catch (error) {
+        console.error('Error fetching email counts:', error);
+      } finally {
+        setisLoading(false);
+      }
+    };
+
+    fetchEmailCounts();
+  }, []);
+
   useEffect(() => {
     if (selectedName) {
-      setActiveNameId(selectedName.id);
+      setActiveNameId(selectedName);
     } else {
       setActiveNameId(null); // No active name
     }
@@ -668,6 +719,8 @@ const Home = () => {
                     selectedData={selectedName}
                     sentEmails={sentEmails}
                     receivedEmails={receivedEmails}
+                    sentEmailCount={sentEmailCount}
+                    receivedEmailCount={receivedEmailCount}
                     onClose={handleCloseDetailPanel}
                     messages={messages}
                     loading={isLoading}

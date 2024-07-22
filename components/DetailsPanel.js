@@ -28,6 +28,8 @@ const DetailPanel = ({
   // pageToken,
   // loadmore,
   selectedData,
+  sentEmailCount,
+  receivedEmailCount,
   sentEmails,
   receivedEmails,
   onClose,
@@ -74,7 +76,7 @@ const DetailPanel = ({
   const handleComplaintChangeDebounced = debounce((content) => {
     setEmbedLink(content);
   }, 500);
-  console.log('selected data',receivedEmails);
+  console.log('selected data',receivedEmailCount);
   // useEffect(() => {
   //   setisLoading(true);
   //   // Fetch data from the Links table for the selected name
@@ -373,6 +375,7 @@ const DetailPanel = ({
   const handleToggleFormat = (emailId, format) => {
     setBodyFormat(prevState => ({ ...prevState, [emailId]: format }));
   };
+  
   return (
     <div style={{ lineHeight: "2rem", overflowY: "scroll", height: "90vh" }}>
       {showPdfViewer && (
@@ -426,7 +429,7 @@ const DetailPanel = ({
         </p>
         <p className="text-black dark:text-white">
           <span className="dark:text-[#d5d5d5] text-[#828282]">Company</span> :{" "}
-          {selectedData["CompanyName"]}
+          {selectedData["Name"]}
         </p>
         <p className="text-black dark:text-white">
           <span className="dark:text-[#d5d5d5] text-[#828282]">Email</span> :{" "}
@@ -434,10 +437,75 @@ const DetailPanel = ({
         </p>
         <p className="text-black dark:text-white">
           <span className="dark:text-[#d5d5d5] text-[#828282]">Phone</span> :{" "}
-          {selectedData["Phone"]}
+          {/* {selectedData["Phone"]} */} ---
         </p>
+        <div>
+          {loading ? (
+            <span>Loading . . .</span>
+          ) : (
+            <>
+              <p className="text-black dark:text-white">
+                <span className="dark:text-[#d5d5d5] text-[#828282]">Email Sent</span> :
+                <span> {sentEmailCount}</span>
+              </p>
 
-        {sentEmails ? (
+              <p className="text-black dark:text-white">
+                <span className="dark:text-[#d5d5d5] text-[#828282]">Email Received</span> :
+                <span> {receivedEmailCount}</span>
+              </p>
+              <p className="text-black dark:text-white">
+                <span className="dark:text-[#d5d5d5] text-[#828282]">Total Email</span> :
+                <span> {sentEmailCount + receivedEmailCount}</span>
+              </p>
+              {sentEmails.length > 0 && (
+                <>
+                  <p className="text-black dark:text-white">
+                    <span className="dark:text-[#d5d5d5] text-[#828282]">Date of First Email Sent</span>:
+                    {loading ? (
+                      <span> Fetching . . . </span>
+                    ) : (
+                      <span className="">
+                        {new Date(sentEmails[sentEmails.length - 1]?.payload.headers[1].value).toLocaleString()}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-black dark:text-white">
+                    <span className="dark:text-[#d5d5d5] text-[#828282]">Date of Last Email Sent</span>:
+                    {loading ? (
+                      <span> Fetching . . . </span>
+                    ) : (
+                      <span>
+                        {new Date(sentEmails[0]?.payload.headers[1].value).toLocaleString()}
+                      </span>
+                    )}
+                  </p>
+                </>
+              )}
+              {/* Additional UI components */}
+              {publicview === true ? (
+                <></>
+              ) : (
+                <>
+                  <div className="flex items-center pt-10">
+                    <button
+                      className="dark:text-white text-black px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9] rounded-md"
+                      onClick={handleCopy}
+                    >
+                      Copy Incident Link
+                    </button>
+                    <span className="text-green-600 px-2">
+                      {isCopied && <p>✅ Link copied to clipboard!</p>}
+                    </span>
+                  </div>
+                  <a href={complaintLink} className="text-gray-600">
+                    {complaintLink}
+                  </a>
+                </>
+              )}
+            </>
+          )}
+        </div>
+        {/* {sentEmails ? (
           <>
             <p className="text-black dark:text-white">
               <span className="dark:text-[#d5d5d5] text-[#828282]">Email Sent</span> :
@@ -464,7 +532,7 @@ const DetailPanel = ({
                 <span> {sentEmails?.length + receivedEmails?.length}</span>
               )}
             </p>
-            {/* Conditionally render Date of First and Last Email Sent */}
+            
             {sentEmails.length > 0 && (
               <>
                 <p className="text-black dark:text-white">
@@ -514,7 +582,7 @@ const DetailPanel = ({
           <>
             <span>Loading data . . </span>
           </>
-        )}
+        )} */}
       </div>
 
       {loading ? (
