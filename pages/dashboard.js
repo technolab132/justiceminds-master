@@ -35,10 +35,11 @@ const Home = () => {
   const [loadingtext, setLoadingText] = useState(false);
   const [currentlyExtractingEmailIndex, setCurrentlyExtractingEmailIndex] =
     useState(-1);
-
+  const [sentEmailCount, setSentEmailCount] = useState(0);
+  const [receivedEmailCount, setReceivedEmailCount] = useState(0);
   // this is step1 for creating new tab
   const [messages, setMessages] = useState([]);
-
+  const [activeTab, setActiveTab] = useState();
   const [isLoading, setisLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [masterData, setMasterData] = useState([]);
@@ -240,6 +241,17 @@ const Home = () => {
     // const { data, error } = supabase.from('EmailData').select('*').eq("email", )
 
     try {
+      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
+      const { emails: SentEmails, error} = await Sentresponse.json();
+
+      if (Sentresponse.ok) {
+        //console.log('sent emails',emails);
+        setSentEmails(SentEmails);
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+
       const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=INBOX&type=RECIEVE');
       const { emails: receivedEmails, error: semailError } = await Receivedresponse.json();
 
@@ -256,16 +268,7 @@ const Home = () => {
       } else {
         setError(data.error);
       }
-      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
-      const { emails: SentEmails, error} = await Sentresponse.json();
-
-      if (Sentresponse.ok) {
-        //console.log('sent emails',emails);
-        setSentEmails(SentEmails);
-        setisLoading(false);
-      } else {
-        setError(data.error);
-      }
+      
 
       // Fetch count of sent emails
       const sentCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=SENT');
@@ -288,7 +291,11 @@ const Home = () => {
       } else {
         setError(data.error);
       }
-      
+      if(SentEmails.length > 0){
+        setActiveTab('sent');
+      }else{
+        setActiveTab('received');
+      }
 
     } catch (err) {
       console.error('Error fetching emails:', err);
@@ -520,31 +527,30 @@ const Home = () => {
   };
 
 
-  const [sentEmailCount, setSentEmailCount] = useState(0);
-  const [receivedEmailCount, setReceivedEmailCount] = useState(0);
-  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchEmailCounts = async () => {
-      try {
-        // Fetch count of sent emails
-        const sentResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=SENT');
-        const sentData = await sentResponse.json();
-        setSentEmailCount(sentData.count);
+  // // const [loading, setLoading] = useState(true);
 
-        // Fetch count of received emails
-        const receivedResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=RECIEVE');
-        const receivedData = await receivedResponse.json();
-        setReceivedEmailCount(receivedData.count);
-      } catch (error) {
-        console.error('Error fetching email counts:', error);
-      } finally {
-        setisLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchEmailCounts = async () => {
+  //     try {
+  //       // Fetch count of sent emails
+  //       const sentResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=SENT');
+  //       const sentData = await sentResponse.json();
+  //       setSentEmailCount(sentData.count);
 
-    fetchEmailCounts();
-  }, []);
+  //       // Fetch count of received emails
+  //       const receivedResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=RECIEVE');
+  //       const receivedData = await receivedResponse.json();
+  //       setReceivedEmailCount(receivedData.count);
+  //     } catch (error) {
+  //       console.error('Error fetching email counts:', error);
+  //     } finally {
+  //       setisLoading(false);
+  //     }
+  //   };
+
+  //   fetchEmailCounts();
+  // }, []);
 
   useEffect(() => {
     if (selectedName) {
@@ -732,6 +738,7 @@ const Home = () => {
                     currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
                     incident={incident}
                     publicview={false}
+                    activeTabs={activeTab}
                   />
                   // <DetailPanel
                   // // emaillist={emails}

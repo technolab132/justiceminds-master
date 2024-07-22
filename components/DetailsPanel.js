@@ -43,8 +43,12 @@ const DetailPanel = ({
   currentlyExtractingEmailIndex,
   incident,
   publicview,
+  activeTabs
 }) => {
-  const [activeTab, setActiveTab] = useState("sent");
+ // console.log('activeTabs',typeof(activeTabs));
+  const [activeTab, setActiveTab] = useState('sent');
+  
+  
   const [showFullMessages, setShowFullMessages] = useState({}); // State to track if the full message should be shown
   const editor = useRef(null);
   // const [loadingtext, setLoadingText] = useState(false); // State to track if
@@ -774,7 +778,7 @@ const DetailPanel = ({
                                 </tr>
                               </tbody>
                             </table>
-                            <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-black p-3 rounded-lg w-full"></AccordionTrigger>
+                            <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
                           </div>
                           <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
                             <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
@@ -976,7 +980,7 @@ const DetailPanel = ({
                                 </tr>
                               </tbody>
                             </table>
-                            <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-black p-3 rounded-lg w-full"></AccordionTrigger>
+                            <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
                           </div>
                           <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
                             <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
