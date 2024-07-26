@@ -701,28 +701,23 @@ const DetailPanel = ({
                     //const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                     const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                    const emailId = headers.find(header => header.name === 'Message-ID').value;
+                    const emailId = headers.find(header => header.name === 'Message-ID')?.value;
                     console.log('emailid',emailId);
 
-                    // const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
-                    // const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
-
-                    // const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    // const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    
-                    // const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
                     // Helper function to decode base64 url-safe string
                     const decodeBase64UrlSafe = (str) => {
                       return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
                     };
 
                     // Function to find and decode the text and HTML parts
-                    const getBodyData = (parts) => {
+                    const getBodyData = (payload) => {
                       let textBody = 'No Message';
                       let htmlBody = 'No Message';
-
-                      if (parts) {
-                        parts.forEach(part => {
+                  
+                      if (!payload.parts && payload.mimeType === 'text/html') {
+                        htmlBody = decodeBase64UrlSafe(payload.body.data);
+                      } else if (payload.parts) {
+                        payload.parts.forEach(part => {
                           if (part.mimeType === 'multipart/alternative' && part.parts) {
                             part.parts.forEach(subPart => {
                               if (subPart.mimeType === 'text/plain') {
@@ -738,12 +733,12 @@ const DetailPanel = ({
                           }
                         });
                       }
-
+                  
                       return { textBody, htmlBody };
                     };
 
                     // Get the body data from the email payload
-                    const { textBody, htmlBody } = getBodyData(email.payload.parts);
+                    const { textBody, htmlBody } = getBodyData(email.payload);
 
                     const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBody : textBody;
 
@@ -821,8 +816,7 @@ const DetailPanel = ({
                                   </p>
                                 ) : (
                                   <div 
-                                    className="text-black dark:text-white" 
-                                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                                    className="text-black dark:text-white email-html-content"
                                     dangerouslySetInnerHTML={{ __html: bodyData }} 
                                   />
                                 )}
@@ -901,24 +895,20 @@ const DetailPanel = ({
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
                     const emailId = email.id;//headers.find(header => header.name === 'Message-ID').value;
 
-                    // const textBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain');
-                    // const htmlBodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/html');
-
-                    // const textBodyData = textBodyPart ? atob(textBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    // const htmlBodyData = htmlBodyPart ? atob(htmlBodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    
-                    // const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBodyData : textBodyData;
                     const decodeBase64UrlSafe = (str) => {
                       return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
                     };
 
                     // Function to find and decode the text and HTML parts
-                    const getBodyData = (parts) => {
+                    const getBodyData = (payload) => {
                       let textBody = 'No Message';
                       let htmlBody = 'No Message';
-
-                      if (parts) {
-                        parts.forEach(part => {
+                      let inlineImages = {};
+                    
+                      if (!payload.parts && payload.mimeType === 'text/html') {
+                        htmlBody = decodeBase64UrlSafe(payload.body.data);
+                      } else if (payload.parts) {
+                        payload.parts.forEach(part => {
                           if (part.mimeType === 'multipart/alternative' && part.parts) {
                             part.parts.forEach(subPart => {
                               if (subPart.mimeType === 'text/plain') {
@@ -931,15 +921,19 @@ const DetailPanel = ({
                             textBody = decodeBase64UrlSafe(part.body.data);
                           } else if (part.mimeType === 'text/html') {
                             htmlBody = decodeBase64UrlSafe(part.body.data);
-                          }
+                          } 
+                          // else if (part.mimeType.startsWith('image/')) {
+                          //   inlineImages[part.headers.find(h => h.name === 'Content-ID').value] = `data:${part.mimeType};base64,${part.body.data}`;
+                          // }
                         });
                       }
-
-                      return { textBody, htmlBody };
+                    
+                      return { textBody, htmlBody, inlineImages };
                     };
+                    
 
                     // Get the body data from the email payload
-                    const { textBody, htmlBody } = getBodyData(email.payload.parts);
+                    const { textBody, htmlBody } = getBodyData(email.payload);
 
                     const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBody : textBody;
                     console.log('emailid',emailId);
@@ -957,6 +951,17 @@ const DetailPanel = ({
                     };
                     const urlsInBody = extractUrlsFromText(bodyData);
                     console.log('urls',urlsInBody);
+                    const shortenUrl = (url) => {
+                      try {
+                        const urlObj = new URL(url);
+                        return urlObj.hostname;
+                      } catch (error) {
+                        console.error('Invalid URL:', url, error);
+                        return url; // Fallback to original URL if invalid
+                      }
+                    };
+                    
+                    
                     return (
                       <Accordion key={index} type={"single"} collapsible className="w-full">
                         <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
@@ -1002,10 +1007,10 @@ const DetailPanel = ({
                               <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
                               <div className="flex gap-2 mb-2">
-                                <button onClick={() => handleToggleFormat(emailId, 'text/plain')} className="p-2 bg-blue-500 text-white rounded">
+                                <button onClick={() => handleToggleFormat(emailId, 'text/plain')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
                                   Show Text
                                 </button>
-                                <button onClick={() => handleToggleFormat(emailId, 'text/html')} className="p-2 bg-green-500 text-white rounded">
+                                <button onClick={() => handleToggleFormat(emailId, 'text/html')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
                                   Show HTML
                                 </button>
                               </div>
@@ -1016,7 +1021,9 @@ const DetailPanel = ({
                                     {`------------------`}
                                     {urlsInBody.map((url, urlIndex) => (
                                       <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
-                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                        <a target="_blank" className="underline" href={url}>
+                                          {shortenUrl(url)}
+                                        </a><br />
                                       </p>
                                     ))}
                                     {`------------------`}
@@ -1264,7 +1271,7 @@ const DetailPanel = ({
                         const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                         const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                         const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        const emailId = headers.find(header => header.name === 'Message-ID')?.value;
                         console.log('emailid',emailId);
                         const handleViewPdf = async () => {
                           if (pdfAttachmentId) {
@@ -1284,7 +1291,6 @@ const DetailPanel = ({
                             <tr key={index} className="">
                               <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
                                 {new Date(dateHeader.value).toLocaleString()}
-                                {/* {email["SENT"]} */}
                               </td>
                               <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
                                 {pdfAttachmentId && (
@@ -1292,19 +1298,6 @@ const DetailPanel = ({
                                           {subjectHeader.value}
                                         </button>
                                       )}
-                                {/* <button
-                                  onClick={() =>
-                                    openPdfViewer(
-                                      `https://drive.google.com/file/d/${
-                                        email["PDFLINK"]?.match(
-                                          /\/d\/([a-zA-Z0-9_-]+)\//
-                                        )[1]
-                                      }/preview`
-                                    )
-                                  }
-                                >
-                                  {email["SUBJECT"]}
-                                </button> */}
                               </td>
                             </tr>
                           </>
@@ -1323,7 +1316,7 @@ const DetailPanel = ({
                         const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                         const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                         const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        const emailId = headers.find(header => header.name === 'Message-ID')?.value;
                         console.log('emailid',emailId);
                         const handleViewPdf = async () => {
                           if (pdfAttachmentId) {
@@ -1585,10 +1578,18 @@ const DetailPanel = ({
                         const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                         const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                         const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        const emailId = headers.find(header => header.name === 'Message-ID')?.value;
                         console.log('emailid',emailId);
                         const innerLinks = extractUrlsFromText(bodyData);
-                        
+                        const shortenUrl = (url) => {
+                          try {
+                            const urlObj = new URL(url);
+                            return urlObj.hostname;
+                          } catch (error) {
+                            console.error('Invalid URL:', url, error);
+                            return url; // Fallback to original URL if invalid
+                          }
+                        };
                         if(innerLinks){
                           return(
                           <>
@@ -1605,7 +1606,7 @@ const DetailPanel = ({
                                 <ul>
                                   {innerLinks.map((link, linkIndex) => (
                                     <li key={linkIndex}>
-                                      <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{link}</a>
+                                      <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
                                     </li>
                                   ))}
                                 </ul>
@@ -1630,10 +1631,18 @@ const DetailPanel = ({
                         const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                         const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                         const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                        const emailId = headers.find(header => header.name === 'Message-ID').value;
+                        const emailId = headers.find(header => header.name === 'Message-ID')?.value;
                         console.log('emailid',emailId);
                         const innerLinks = extractUrlsFromText(bodyData);
-                        
+                        const shortenUrl = (url) => {
+                          try {
+                            const urlObj = new URL(url);
+                            return urlObj.hostname;
+                          } catch (error) {
+                            console.error('Invalid URL:', url, error);
+                            return url; // Fallback to original URL if invalid
+                          }
+                        };
                         if(innerLinks){
                           return(
                           <>
@@ -1650,7 +1659,7 @@ const DetailPanel = ({
                                 <ul>
                                   {innerLinks.map((link, linkIndex) => (
                                     <li key={linkIndex}>
-                                      <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{link}</a>
+                                      <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
                                     </li>
                                   ))}
                                 </ul>

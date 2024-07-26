@@ -145,50 +145,50 @@ const IndividualCLient = () => {
     // ... (unchanged)
   };
 
-  const handleSelectName = async (ID) => {
-    setExtractedTexts({});
-    const selectedRow = masterData?.find((row) => row.Email === ID);
+  // const handleSelectName = async (ID) => {
+  //   setExtractedTexts({});
+  //   const selectedRow = masterData?.find((row) => row.Email === ID);
 
-    if (!selectedRow) {
-      console.error("Selected row not found");
-      return;
-    }
+  //   if (!selectedRow) {
+  //     console.error("Selected row not found");
+  //     return;
+  //   }
 
-    setSelectedName(selectedRow);
-    setisLoading(true);
+  //   setSelectedName(selectedRow);
+  //   setisLoading(true);
 
-    const { data: SentEmails, error: semailError } = await supabase
-      .from("newtabledata")
-      .select("*")
-      .eq("TO", selectedRow?.Email);
+  //   const { data: SentEmails, error: semailError } = await supabase
+  //     .from("newtabledata")
+  //     .select("*")
+  //     .eq("TO", selectedRow?.Email);
 
-    const { data: ReceivedEmails, error: remailError } = await supabase
-      .from("newtabledata")
-      .select("*")
-      .eq("FROM", selectedRow?.Email);
+  //   const { data: ReceivedEmails, error: remailError } = await supabase
+  //     .from("newtabledata")
+  //     .select("*")
+  //     .eq("FROM", selectedRow?.Email);
 
-    const { data: IncidentData, error: incidenterror } = await supabase
-      .from("Complaints")
-      .select("*")
-      .eq("complaint_for", selectedRow?.Name);
+  //   const { data: IncidentData, error: incidenterror } = await supabase
+  //     .from("Complaints")
+  //     .select("*")
+  //     .eq("complaint_for", selectedRow?.Name);
 
-    if (semailError) {
-      console.error("sentmaail", semailError);
-    }
+  //   if (semailError) {
+  //     console.error("sentmaail", semailError);
+  //   }
 
-    if (remailError) {
-      console.error("receivedmaail", remailError);
-    }
+  //   if (remailError) {
+  //     console.error("receivedmaail", remailError);
+  //   }
 
-    if (incidenterror) {
-      console.error("incidenterror", incidenterror);
-    }
+  //   if (incidenterror) {
+  //     console.error("incidenterror", incidenterror);
+  //   }
 
-    setSentEmails(SentEmails || []);
-    setReceivedEmails(ReceivedEmails || []);
-    setIncident(IncidentData || []);
-    setisLoading(false);
-  };
+  //   setSentEmails(SentEmails || []);
+  //   setReceivedEmails(ReceivedEmails || []);
+  //   setIncident(IncidentData || []);
+  //   setisLoading(false);
+  // };
 
   //   useEffect(() => {
   //     if (selectedName) {
@@ -197,6 +197,121 @@ const IndividualCLient = () => {
   //       setActiveNameId(null);
   //     }
   //   }, [selectedName]);
+
+  const handleSelectName = async (data) => {
+    setExtractedTexts({});
+    // setEmails([])
+    // setNextPageToken("")
+    // const selectedRow = emails.find((row) => row.id === ID);
+    // // const selectedRowW = sheetdata3.find((row) => row[0] === name);
+    
+    const selectedRow = data;
+    console.log(selectedRow)
+    // let name = "Unknown";
+    // let email = "Unknown";
+    // const headers = selectedRow.payload.headers;
+    // const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
+    // if (fromHeader) {
+    //   const fromParts = fromHeader.value.split('<');
+    //   console.log(fromParts);
+    //   name = fromParts[0].trim();
+    //   const fromParts1 = fromParts[1].split('>');
+    //   if(fromParts.length > 1){
+    //     email = fromParts1[0];
+    //   }
+      
+    // }
+    const selectedData = {
+      'Email': selectedRow.email,
+      'Name': selectedRow.name,
+
+    }
+    setSelectedName(selectedData);
+    setisLoading(true);
+    console.log(selectedName);
+    // console.log(selectedRow);
+    // setSelectedNameWW(selectedRowW);
+    // const { data, error } = supabase.from('EmailData').select('*').eq("email", )
+
+    try {
+      const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=INBOX&type=RECIEVE');
+      const { emails: receivedEmails, error: semailError } = await Receivedresponse.json();
+
+      if (Receivedresponse.ok) {
+        //setEmails(data.emails);
+       // SentEmails = data.emails;
+        // setSentEmails(SentEmails);
+        console.log('sent emails',emails);
+        //setSentEmails(SentEmails);
+        setReceivedEmails(receivedEmails);
+        // setIncident(IncidentData);
+        // setMessages(Messages)
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
+      const { emails: SentEmails, error} = await Sentresponse.json();
+
+      if (Sentresponse.ok) {
+        console.log('sent emails',emails);
+        setSentEmails(SentEmails);
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+
+    } catch (err) {
+      console.error('Error fetching emails:', err);
+      setError(err.message);
+    }
+
+    // const { data: SentEmails, error: semailError } = await supabase
+    //   .from("newtabledata")
+    //   .select("*")
+    //   .eq("TO", selectedRow.Email);
+
+    // // Assuming 'Email' is the column name that links data between the tables
+    // const { data: ReceivedEmails, error: remailError } = await supabase
+    //   .from("newtabledata")
+    //   .select("*")
+    //   .eq("FROM", selectedRow.Email); // Assuming 'Email' is the column name that links data between the tables
+    //   // step 2 to crete tab on dashboard and get messages or data from supabase 
+    const { data: Messages, error: messageError } = await supabase
+      .from('Chats')
+      .select('*')
+      .eq('Chat Session', selectedRow?.Name); // Assuming 'Email' is the column name that links data between the tables
+      console.log(Messages);
+    // const { data: IncidentData, error: incidenterror } = await supabase
+    //   .from("Complaints")
+    //   .select("*")
+    //   .eq("complaint_for", selectedRow.Name);
+
+    // if (semailError) {
+    //   console.error("sentmaail", semailError);
+    //   return;
+    // }
+    // if (remailError) {
+    //   console.error("receivedmaail", remailError);
+    //   return;
+    // }
+    // if (incidenterror) {
+    //   console.error("incidenterror", incidenterror);
+    //   return;
+    // }
+    if (messageError) {
+      console.error("messageerror", messageError);
+      return;
+    }
+
+    // setSentEmails(SentEmails);
+    // setReceivedEmails(ReceivedEmails);
+    // setIncident(IncidentData);
+    setMessages(Messages)
+    setisLoading(false);
+
+    // console.log(sentEmails);
+  };
 
   const handleCloseDetailPanel = () => {
     setSelectedName(null);
@@ -246,11 +361,27 @@ const IndividualCLient = () => {
       <div className="flex h-screen overflow-hidden pt-[60px] lg:pt-[80px]">
         <div className="overflow-y-auto w-full md:w-2/3 md:m-6 rounded-lg bg-[#101010] md:mx-auto">
           {selectedName ? (
+            // <DetailPanel
+            //   selectedData={selectedName}
+            //   sentEmails={sentEmails}
+            //   receivedEmails={receivedEmails}
+            //   onClose={handleCloseDetailPanel}
+            //   loading={isLoading}
+            //   extractedTexts={extractedTexts}
+            //   setExtractedTexts={setExtractedTexts}
+            //   extractedUrls={extractedUrls}
+            //   handleExtractText={handleExtractText}
+            //   loadingtext={loadingtext}
+            //   currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
+            //   incident={incident}
+            //   publicview={true}
+            // />
             <DetailPanel
               selectedData={selectedName}
               sentEmails={sentEmails}
               receivedEmails={receivedEmails}
               onClose={handleCloseDetailPanel}
+              messages={messages}
               loading={isLoading}
               extractedTexts={extractedTexts}
               setExtractedTexts={setExtractedTexts}
@@ -259,7 +390,7 @@ const IndividualCLient = () => {
               loadingtext={loadingtext}
               currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
               incident={incident}
-              publicview={true}
+              publicview={false}
             />
           ) : (
             <LoadingComponent />
