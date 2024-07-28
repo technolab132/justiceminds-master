@@ -354,142 +354,10 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // const fetchEmails = async () => {
-  //   setLoading(true);
-  //   setError(null);
-
-  //   try {
-  //     // Retrieve the session token from localStorage
-  //     // const session = localStorage.getItem('supabase.auth.token');
-  //     // if (!session) {
-  //     //   throw new Error('No session found');
-  //     // }
-
-  //     // const parsedResponse = JSON.parse(session);
-  //     // console.log(parsedResponse)
-  //     // const accessToken = parsedResponse.currentSession.access_token;
-  //     // const refreshToken = parsedResponse.currentSession.provider_token;
-  //     // const tokenType = parsedResponse.currentSession.token_type;
-  //     // const expiryDate = parsedResponse.currentSession.expires_at;
-  //     // const GMAIL_API_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
-  //     // const code = {
-  //     //   access_token: accessToken,
-  //     //   refresh_token: refreshToken,
-  //     //   scope: GMAIL_API_SCOPE,
-  //     //   token_type: tokenType,
-  //     //   expiry_date: expiryDate
-  //     // }
-  //     // console.log('code',code);
-  //     const tokens = JSON.parse(localStorage.getItem('gmail_tokens'));
-  //     const response = await fetch('/api/emails', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(tokens),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch emails');
-  //     }
-
-  //     const data = await response.json();
-  //     setEmails(data);
-  //   } catch (error) {
-  //     setError(error.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
 
-  // const fetchEmails = async () => {
-  //   try {
-  //     const session = await supabase.auth.session();
 
-  //     if (!session) {
-  //       throw new Error('No active session found');
-  //     }
-
-  //     const accessToken = session.access_token;
-  //     console.log(accessToken);
-  //     const response = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages', {
-  //       headers: {
-  //         Authorization: `Bearer ${accessToken}`,
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch emails');
-  //     }
-
-  //     const data = await response.json();
-  //     const messages = await Promise.all(
-  //       data.messages.map(async (message) => {
-  //         const messageResponse = await fetch(
-  //           `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
-  //           {
-  //             headers: {
-  //               Authorization: `Bearer ${accessToken}`,
-  //             },
-  //           }
-  //         );
-
-  //         if (!messageResponse.ok) {
-  //           throw new Error('Failed to fetch email details');
-  //         }
-
-  //         return await messageResponse.json();
-  //       })
-  //     );
-
-  //     setEmails(messages);
-  //   } catch (error) {
-  //     setError(error.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // useEffect(() => {
-  //   fetchEmails();
-  // }, []);
-
-  // useEffect(() => {
-  //   const fetchUserEmails = async () => {
-  //     try {
-  //       // Fetch emails using the utility function
-  //       const emailDetails = await fetchEmails();
-  //       setEmails(emailDetails);
-  //     } catch (error) {
-  //       console.error('Error fetching emails:', error);
-  //     }
-  //   };
-
-  //   fetchUserEmails();
-  // }, []); // Empty dependency array means this effect runs only once, on mount
-
-  // const [emails, setEmails] = useState([]);
-  // //const router = useRouter();
-
-  // useEffect(() => {
-  //   const fetchEmails = async () => {
-  //     const response = await fetch('/api/emails');
-
-  //     if (response.status === 302) {
-  //       const redirectUrl = response.headers.get('Location');
-  //       window.location.href = redirectUrl;
-  //       return;
-  //     }
-
-  //     if (!response.ok) {
-  //       console.error('Failed to fetch emails');
-  //       return;
-  //     }
-
-  //     const emails = await response.json();
-  //     setEmails(emails);
-  //   };
-
-  //   fetchEmails();
-  // }, []);
+ 
   // end
   useEffect(() => {
     const getEmails = async () => {
@@ -665,7 +533,7 @@ const Home = () => {
         )}
       </div> */}
                 <div>
-                <div style={{ display: 'flex', width: '100%', marginTop: '15px', marginBottom:'10px',marginLeft:'1px' }}>
+                <div style={{ display: 'flex', width: '100%',paddingLeft: '8px',paddingRight: '8px', marginTop: '15px', marginBottom:'10px',marginLeft:'1px' }}>
                   <input
                     type="text"
                     placeholder="Search by name"

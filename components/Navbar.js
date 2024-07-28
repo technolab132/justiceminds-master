@@ -85,7 +85,7 @@ const Navbar = () => {
               Dashboard
             </a>
           </li>
-          <li>
+          {/* <li>
             <a
               className={`hover:underline text-[15px]  ${
                 router.pathname === "/publicchat"
@@ -154,9 +154,12 @@ const Navbar = () => {
             >
               Maps
             </a>
-          </li>
+          </li> */}
           <li>
-            <a className="text-red-500" href="" onClick={logout}>
+            <a className={`hover:underline text-[15px]  ${
+                router.pathname === "/" ? "dark:text-white text-gray-900"
+                : "dark:text-gray-500 text-gray-500"
+              }`} href="" onClick={logout}>
               Logout
             </a>
           </li>
