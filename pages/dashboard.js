@@ -533,7 +533,7 @@ const Home = () => {
         )}
       </div> */}
                 <div>
-                <div style={{ display: 'flex', width: '100%',paddingLeft: '8px',paddingRight: '8px', marginTop: '15px', marginBottom:'10px',marginLeft:'1px' }}>
+                <div style={{ display: 'flex', width: '100%',paddingLeft: '8px',paddingRight: '25px', marginTop: '15px', marginBottom:'10px',marginLeft:'5px' }}>
                   <input
                     type="text"
                     placeholder="Search by name"

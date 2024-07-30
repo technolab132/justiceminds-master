@@ -371,14 +371,127 @@ const DetailPanel = ({
     }
   };
   const extractUrlsFromText = (text) => {
-    const urlPattern = /(https?:\/\/[^\s]+)/g;
-    return text.match(urlPattern);
+    if (typeof text === 'string') {
+      const urlPattern = /(https?:\/\/[^\s]+)/g;
+      return text.match(urlPattern) || [];
+    }
+    return [];
   };
   const [bodyFormat, setBodyFormat] = useState({}); // State to store body format for each email
 
   const handleToggleFormat = (emailId, format) => {
     setBodyFormat(prevState => ({ ...prevState, [emailId]: format }));
   };
+
+  // for html body
+  const decodeBase64UrlSafe = (str) => {
+    return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+  };
+
+  // Function to find and decode the text and HTML parts
+  const getBodyData = (payload) => {
+    let textBody = 'No Message';
+    let htmlBody = 'No Message';
+    let inlineImages = {};
+  
+    if (!payload.parts && payload.mimeType === 'text/html') {
+      htmlBody = decodeBase64UrlSafe(payload.body.data);
+    } else if (payload.parts) {
+      payload.parts.forEach(part => {
+        if (part.mimeType === 'multipart/alternative' && part.parts) {
+          part.parts.forEach(subPart => {
+            if (subPart.mimeType === 'text/plain') {
+              textBody = decodeBase64UrlSafe(subPart.body.data);
+            } else if (subPart.mimeType === 'text/html') {
+              htmlBody = decodeBase64UrlSafe(subPart.body.data);
+            }
+          });
+        } else if (part.mimeType === 'text/plain') {
+          textBody = decodeBase64UrlSafe(part.body.data);
+        } else if (part.mimeType === 'text/html') {
+          htmlBody = decodeBase64UrlSafe(part.body.data);
+        } 
+        else if (part.mimeType.startsWith('image/')) {
+          const cid = part.headers.find(h => h.name.toLowerCase() === 'content-id')?.value.replace(/[<>]/g, '');
+          if (cid) {
+            // Assume attachmentId is a string and not a promise
+            const attachmentId = part.body.attachmentId;
+            if (attachmentId) {
+              // Store attachmentId directly if it's a string or resolved value
+              inlineImages[cid] = attachmentId; 
+            }
+            // You can optionally log attachmentId here for debugging
+            console.log('attachmentId', attachmentId);
+          }
+          //inlineImages[part.headers.find(h => h.name === 'Content-ID').value] = `data:${part.mimeType};base64,${part.body.data}`;
+        }
+      });
+    }
+  
+    return { textBody, htmlBody, inlineImages };
+  };
+  
+  const [recievedHtmlBodies, setRecievedHtmlBodies] = useState({});
+  const [sentHtmlBodies, setSentHtmlBodies] = useState({});
+  
+  // Fetch and replace inline images
+  useEffect(() => {
+    receivedEmails.forEach(async (email) => {
+      const { htmlBody, inlineImages } = getBodyData(email.payload);
+      if (Object.keys(inlineImages).length > 0) {
+        const modifiedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
+        setRecievedHtmlBodies(prev => ({ ...prev, [email.id]: modifiedHtmlBody }));
+      } else {
+        setRecievedHtmlBodies(prev => ({ ...prev, [email.id]: htmlBody }));
+      }
+      // const recievedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
+      // setRecievedHtmlBodies(prev => ({ ...prev, [email.id]: recievedHtmlBody }));
+    });
+    sentEmails.forEach(async (email) => {
+      const { htmlBody, inlineImages } = getBodyData(email.payload);
+      console.log('inlineImages for sent',inlineImages);
+      if (Object.keys(inlineImages).length > 0) {
+        const modifiedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
+        setSentHtmlBodies(prev => ({ ...prev, [email.id]: modifiedHtmlBody }));
+      } else {
+        setSentHtmlBodies(prev => ({ ...prev, [email.id]: htmlBody }));
+      }
+      //setSentHtmlBodies(prev => ({ ...prev, [email.id]: sentHtmlBodies }));
+      
+    });
+  }, [receivedEmails,sentEmails]);
+
+  // Function to fetch and replace inline images with base64 data
+  const replaceInlineImages = async (emailId, html, inlineImages) => {
+    if (!html) return '';
+
+    const inlineImagePromises = Object.entries(inlineImages).map(async ([cid, attachmentId]) => {
+      try {
+        console.log(`Fetching attachment for CID: ${cid} with ID: ${attachmentId}`);
+        const attachmentData = await fetchAttachment(emailId, attachmentId);
+        const base64Data = attachmentData.data.replace(/-/g, '+').replace(/_/g, '/');
+        inlineImages[cid] = `data:image/png;base64,${base64Data}`;
+        console.log(`Successfully fetched and replaced image for CID: ${cid}`);
+      } catch (error) {
+        console.error(`Error fetching image with CID: ${cid}`, error);
+      }
+    });
+
+    await Promise.all(inlineImagePromises);
+
+    return html.replace(/<img[^>]+src="cid:([^">]+)"/g, (match, cid) => {
+      const imageData = inlineImages[cid];
+      if (imageData) {
+        return `<img src="${imageData}"`;
+      } else {
+        console.warn(`No image data found for CID: ${cid}`);
+        return match;
+      }
+    });
+  };
+
+
+  
   
   return (
     <div style={{ lineHeight: "2rem", overflowY: "scroll", height: "90vh" }}>
@@ -634,7 +747,7 @@ const DetailPanel = ({
                   }`}
                   onClick={() => handleTabChange("pdflinks")}
                 >
-                  All Pdf Links
+                  Attachments
                 </button>
               )}
               {(sentEmails.length > 0 || receivedEmails.length > 0) && (
@@ -701,46 +814,47 @@ const DetailPanel = ({
                     //const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
                     const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                    const emailId = headers.find(header => header.name === 'Message-ID')?.value;
+                    const emailId = email.id;// headers.find(header => header.name === 'Message-ID')?.value;
                     console.log('emailid',emailId);
 
                     // Helper function to decode base64 url-safe string
-                    const decodeBase64UrlSafe = (str) => {
-                      return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
-                    };
+                    // const decodeBase64UrlSafe = (str) => {
+                    //   return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+                    // };
 
-                    // Function to find and decode the text and HTML parts
-                    const getBodyData = (payload) => {
-                      let textBody = 'No Message';
-                      let htmlBody = 'No Message';
+                    // // Function to find and decode the text and HTML parts
+                    // const getBodyData = (payload) => {
+                    //   let textBody = 'No Message';
+                    //   let htmlBody = 'No Message';
                   
-                      if (!payload.parts && payload.mimeType === 'text/html') {
-                        htmlBody = decodeBase64UrlSafe(payload.body.data);
-                      } else if (payload.parts) {
-                        payload.parts.forEach(part => {
-                          if (part.mimeType === 'multipart/alternative' && part.parts) {
-                            part.parts.forEach(subPart => {
-                              if (subPart.mimeType === 'text/plain') {
-                                textBody = decodeBase64UrlSafe(subPart.body.data);
-                              } else if (subPart.mimeType === 'text/html') {
-                                htmlBody = decodeBase64UrlSafe(subPart.body.data);
-                              }
-                            });
-                          } else if (part.mimeType === 'text/plain') {
-                            textBody = decodeBase64UrlSafe(part.body.data);
-                          } else if (part.mimeType === 'text/html') {
-                            htmlBody = decodeBase64UrlSafe(part.body.data);
-                          }
-                        });
-                      }
+                    //   if (!payload.parts && payload.mimeType === 'text/html') {
+                    //     htmlBody = decodeBase64UrlSafe(payload.body.data);
+                    //   } else if (payload.parts) {
+                    //     payload.parts.forEach(part => {
+                    //       if (part.mimeType === 'multipart/alternative' && part.parts) {
+                    //         part.parts.forEach(subPart => {
+                    //           if (subPart.mimeType === 'text/plain') {
+                    //             textBody = decodeBase64UrlSafe(subPart.body.data);
+                    //           } else if (subPart.mimeType === 'text/html') {
+                    //             htmlBody = decodeBase64UrlSafe(subPart.body.data);
+                    //           }
+                    //         });
+                    //       } else if (part.mimeType === 'text/plain') {
+                    //         textBody = decodeBase64UrlSafe(part.body.data);
+                    //       } else if (part.mimeType === 'text/html') {
+                    //         htmlBody = decodeBase64UrlSafe(part.body.data);
+                    //       }
+                    //     });
+                    //   }
                   
-                      return { textBody, htmlBody };
-                    };
+                    //   return { textBody, htmlBody };
+                    // };
 
                     // Get the body data from the email payload
-                    const { textBody, htmlBody } = getBodyData(email.payload);
-
-                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBody : textBody;
+                    // Get the body data from the email payload
+                    const { textBody } = getBodyData(email.payload);
+                    console.log('sentHtmlBodies',sentHtmlBodies);
+                    const bodyData = bodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
 
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
@@ -895,47 +1009,12 @@ const DetailPanel = ({
                     const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
                     const emailId = email.id;//headers.find(header => header.name === 'Message-ID').value;
 
-                    const decodeBase64UrlSafe = (str) => {
-                      return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
-                    };
-
-                    // Function to find and decode the text and HTML parts
-                    const getBodyData = (payload) => {
-                      let textBody = 'No Message';
-                      let htmlBody = 'No Message';
-                      let inlineImages = {};
                     
-                      if (!payload.parts && payload.mimeType === 'text/html') {
-                        htmlBody = decodeBase64UrlSafe(payload.body.data);
-                      } else if (payload.parts) {
-                        payload.parts.forEach(part => {
-                          if (part.mimeType === 'multipart/alternative' && part.parts) {
-                            part.parts.forEach(subPart => {
-                              if (subPart.mimeType === 'text/plain') {
-                                textBody = decodeBase64UrlSafe(subPart.body.data);
-                              } else if (subPart.mimeType === 'text/html') {
-                                htmlBody = decodeBase64UrlSafe(subPart.body.data);
-                              }
-                            });
-                          } else if (part.mimeType === 'text/plain') {
-                            textBody = decodeBase64UrlSafe(part.body.data);
-                          } else if (part.mimeType === 'text/html') {
-                            htmlBody = decodeBase64UrlSafe(part.body.data);
-                          } 
-                          // else if (part.mimeType.startsWith('image/')) {
-                          //   inlineImages[part.headers.find(h => h.name === 'Content-ID').value] = `data:${part.mimeType};base64,${part.body.data}`;
-                          // }
-                        });
-                      }
-                    
-                      return { textBody, htmlBody, inlineImages };
-                    };
                     
 
                     // Get the body data from the email payload
-                    const { textBody, htmlBody } = getBodyData(email.payload);
-
-                    const bodyData = bodyFormat[emailId] === 'text/html' ? htmlBody : textBody;
+                    const { textBody } = getBodyData(email.payload);
+                    const bodyData = bodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                     console.log('emailid',emailId);
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
