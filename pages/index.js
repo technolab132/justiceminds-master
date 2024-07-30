@@ -1,6 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '../utils/supabaseClient';
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +13,41 @@ import {
 import { LampContainer } from "../components/ui/lamp";
 
 const spotlight = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(session);
+      if (session) {
+        router.push('/dashboard'); // Redirect to a protected route after login
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router]);
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_URL}/auth/callback`, // Set the redirect URL
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        scopes: 'https://www.googleapis.com/auth/gmail.readonly',
+      },
+      
+    });
+    if (error) {
+      console.error('Error initiating OAuth:', error.message);
+      // res.status(500).json({ error: error.message });
+    }else {
+     // router.push('/dashboard');
+    }
+    // router.push('/dashboard');
+  };
   return (
     <>
       <Head>
@@ -57,50 +95,46 @@ const spotlight = () => {
         <div class="clz1d chtv9 c3wgq cjhcr">
           {/* <!-- Left side --> */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9 }}
-            class="cvidh cz3i2 c06d3 cj25x ckv2c ca5uj c1f4m c95b3 c3nel animate animate-in"
-          >
-            {/* <!-- Background Illustration --> */}
-            <div
-              class="c3gpz c1osd cvvie cmatm cnh8i crp9m cfxzy"
-              aria-hidden="true"
-            >
-              <img
-                class="c3stl"
-                src="/assets/images/bg-illustration.svg"
-                width="785"
-                height="685"
-                alt="Bg illustration"
-              />
-            </div>
-            <LampContainer>
-      <motion.h1
-        initial={{ opacity: 0.5, y: 100 }}
-        whileInView={{ opacity: 1, y: 200 }}
-        transition={{
-          delay: 0.3,
-          duration: 0.8,
-          ease: "easeInOut",
-        }}
-        className="sm:-mt-10 bg-gradient-to-br from-slate-300 to-slate-500 py-4 bg-clip-text text-center text-4xl font-medium tracking-tight text-transparent md:text-7xl"
-      >
-        <img src="/logomain.png" className="mt-2" alt="image" width={"400px"} />
-      </motion.h1>
-    </LampContainer>
-            {/* <div class="clkia cw17b c54n8 cve7d chtv9 c2knu cryui c3nel cl0qm cdv0q c3wgq cmboy">
-              
-              <div class="cdl7m chtv9 c3wgq cjhcr items-center">
-                
-                <div class="cfnv8">
-                
-                  <img src="/logomain.png" alt="image" width={"400px"} />
-                  
-                </div>
-              </div>
-            </div> */}
-          </motion.div>
+  initial={{ opacity: 0, x: -40 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.9 }}
+  className="cvidh cz3i2 c06d3 cj25x ckv2c ca5uj c1f4m c95b3 c3nel animate animate-in"
+>
+  {/* Background Illustration */}
+  <div
+    className="c3gpz c1osd cvvie cmatm cnh8i crp9m cfxzy"
+    aria-hidden="true"
+  >
+    <img
+      className="c3stl"
+      src="/assets/images/bg-illustration.svg"
+      width="785"
+      height="685"
+      alt="Bg illustration"
+    />
+  </div>
+
+  <LampContainer>
+    <motion.h1
+      initial={{ opacity: 0.5, y: 100 }}
+      whileInView={{ opacity: 1, y: 200 }}
+      transition={{
+        delay: 0.3,
+        duration: 0.8,
+        ease: "easeInOut",
+      }}
+      className="sm:-mt-10 bg-gradient-to-br from-slate-300 to-slate-500 py-4 bg-clip-text text-center text-4xl font-medium tracking-tight text-transparent md:text-7xl"
+    >
+      <img src="/logomain.png" className="mt-2" alt="image" width="400px" />
+    </motion.h1>
+
+    {/* Sign In with Google Button */}
+    <div className="z-10 mt-8">
+      
+    </div>
+  </LampContainer>
+</motion.div>
+
 
           {/* <!-- Right side --> */}
           
@@ -367,6 +401,14 @@ const spotlight = () => {
             <div class="co13m cc9s4 c5bmk ca5uj c7k6n ciqx9 c3nel c1bvx c01bk">
               <div class="cve7d c2knu cryui c3nel cmboy">
                 <div class="ckz2n cfbl1 c3wgq cqtii">
+                  <button
+                    onClick={signInWithGoogle}
+                    //className="text-white px-8 py-2 cursor-pointer"
+                    class="cnvgl cl2gl ci9vu cy976 c60cz cs9if cqls2 ciqx9 c3nel ckuce cy34g hover:bg-gray-600 bg-gray-800"
+                    style={{ background: "#1d1d1d", borderRadius: "5px" }}
+                  >
+                    Sign In with Google
+                  </button>
                   <a
                     class="cnvgl cl2gl ci9vu cy976 c60cz cs9if cqls2 ciqx9 c3nel ckuce cy34g hover:bg-gray-600 bg-gray-800"
                     href="https://www.justice-minds.com/agency/About%20Us%20id=0ce983a2-089c-48fe-97ac-f71054fa3bce"
