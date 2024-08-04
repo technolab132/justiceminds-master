@@ -6,66 +6,48 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
- 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
- 
     --radius: 0.5rem;
   }
- 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
- 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
- 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
- 
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
- 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
- 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
- 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
- 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -74,7 +56,6 @@
     @apply bg-background text-foreground;
   }
 }
-
 
 .loader {
   border: 4px solid rgba(0, 0, 0, 0.3);
@@ -86,123 +67,75 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-
-/* :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-} */
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-} */
 table {
   width: 100%;
   border-collapse: collapse;
 }
 
-/* Apply borders to th and td elements */
-th, td {
-  border: 1px solid #e2e8f0; 
+th,
+td {
+  border: 1px solid #e2e8f0;
   padding: 0.75rem;
 }
 
-/* #logo {
-  font-family: "Cinzel Decorative", ser;
-} */
-
-iframe{
+iframe {
   width: 100%;
 }
 
-iframe[src*="youtube.com"] {
-  width: 100%;
-  height: 650px;
-}
-
-/* Adjust height for mobile devices */
-@media only screen and (max-width: 768px) {
-  iframe[src*="youtube.com"] {
-    width: 100%;
-    height: 300px;
-  }
-}
-iframe[src*="tome.app"] {
-  width: 100%;
-  height: 650px;
-}
-
-/* Adjust height for mobile devices */
-@media only screen and (max-width: 768px) {
-  iframe[src*="tome.app"] {
-    width: 100%;
-    height: 300px;
-  }
-}
+iframe[src*="youtube.com"],
+iframe[src*="tome.app"],
 iframe[src*="grain.com"] {
   width: 100%;
   height: 650px;
 }
 
-/* Adjust height for mobile devices */
 @media only screen and (max-width: 768px) {
+  iframe[src*="youtube.com"],
+  iframe[src*="tome.app"],
   iframe[src*="grain.com"] {
-    width: 100%;
     height: 300px;
   }
 }
 
 h1 {
-  font-size: 2rem; /* Example font size for h1 */
+  font-size: 2rem;
 }
 
 h2 {
-  font-size: 1.8rem; /* Example font size for h2 */
+  font-size: 1.8rem;
 }
 
 h3 {
-  font-size: 1.5rem; /* Example font size for h3 */
+  font-size: 1.5rem;
 }
 
 h4 {
-  font-size: 1.3rem; /* Example font size for h4 */
+  font-size: 1.3rem;
 }
 
 h5 {
-  font-size: 1.25rem; /* Example font size for h5 */
+  font-size: 1.25rem;
 }
 
 h6 {
-  font-size: 1rem; /* Example font size for h6 */
+  font-size: 1rem;
 }
-
-/* p {
-  font-size: 1rem; 
-} */
 
 a {
-  font-size: 1rem; /* Example font size for links */
-  /* Additional styles for links if needed */
+  font-size: 1rem;
 }
 
-.jodit-react-container{
-width: 100%;
+.jodit-react-container {
+  width: 100%;
 }
-
-/* @media (min-width: 769px) {
-  #agency-content iframe {
-    width: 50%;
-    height: 400px;
-  }
-} */
 
 .markmap {
   font-family: "Space Grotesk", sans-serif !important;
@@ -213,28 +146,16 @@ width: 100%;
   height: 4rem;
   background-color: #1c1c1c;
 }
-.ress div svg{
+.ress div svg {
   width: 4rem;
-  /* height: 4rem;
-  wid
-   */
-   /* width: 40px; */
 }
-
-/* @media (min-width: 769px) {
-  #accordians iframe {
-    width: 100%;
-    height: 400px;
-  }
-} */
 
 body {
   color: #fff;
   background: #000;
-    font-family: "Space Grotesk";
+  font-family: "Space Grotesk";
 }
 
-/* For WebKit-based browsers (e.g., Chrome, Safari) */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -248,7 +169,6 @@ body {
   background: #b3b3b3e2;
 }
 
-/* For Firefox */
 ::-moz-scrollbar {
   width: 2px;
 }
@@ -261,7 +181,6 @@ body {
   background: #b3b3b3e2;
 }
 
-/* For IE and Edge */
 scrollbar {
   width: 2px;
 }
@@ -274,14 +193,12 @@ scrollbar-thumb {
   background: #b3b3b3e2;
 }
 
-
 @media (min-width: 769px) {
   .smallimg {
     display: none;
   }
 }
 
-/* Hide desktop logo on smaller screens */
 @media (max-width: 768px) {
   .bigimg {
     display: none;
@@ -292,29 +209,17 @@ scrollbar-thumb {
   position: fixed;
   top: 0;
   right: 0;
-  width: 700px; /* Adjust the width as needed */
+  width: 700px;
   height: 100%;
   background-color: black;
   z-index: 3000;
   overflow-y: auto;
   box-shadow: -25px 0 20px rgba(21, 21, 21, 0.8);
-  /* border-left: 2px solid white; */
-
 }
 
 @media (max-width: 668px) {
   .pdf-viewer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%; /* Adjust the width as needed */
-    height: 100%;
-    background-color: black;
-    z-index: 3000;
-    overflow-y: auto;
-    box-shadow: -25px 0 20px rgba(21, 21, 21, 0.8);
-    /* border-left: 2px solid white; */
-  
+    width: 100%;
   }
 }
 
@@ -328,19 +233,15 @@ scrollbar-thumb {
 
 .pdf-iframe {
   width: 100%;
-  height: calc(100% - 50px); /* Adjust the height as needed */
+  height: calc(100% - 50px);
   border: none;
 }
-
 
 .main {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-
-  /* font-family: "Aleo", serif; */
-  /* background: radial-gradient(30deg, ); */
 }
 
 .book {
@@ -350,7 +251,6 @@ scrollbar-thumb {
   transition: transform 0.5s;
 }
 
-
 .paper {
   position: absolute;
   width: 100%;
@@ -358,8 +258,6 @@ scrollbar-thumb {
   top: 0;
   left: 0;
   perspective: 1500px;
-  
-
 }
 
 .front,
@@ -394,7 +292,7 @@ scrollbar-thumb {
 }
 
 .back-content {
-  transform: rotateY(180deg)
+  transform: rotateY(180deg);
 }
 
 .flipped .front,
@@ -402,29 +300,64 @@ scrollbar-thumb {
   transform: rotateY(-180deg);
 }
 
-
-/* 
-
-#p1 {
-  z-index: 3;
+html,
+body {
+  /* overflow: hidden; */
 }
 
-#p2 {
-  z-index: 2;
-}
-
-#p3 {
-  z-index: 1;
-} */
-
-
-.react-pdf__Page__canvas{
-  /* border-radius: 15px; */
+.react-pdf__Page__canvas {
   border-left: 2px solid black;
 }
-
 
 .webgl-viewer-navbar-button-view-on-prezi {
   display: none;
 }
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background-color: #1c1c1c;
+  animation: dotPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes dotPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+    background-color: #666;
+  }
+  100% {
+    transform: scale(1);
+    background-color: #1c1c1c;
+  }
+}
+
+
+.end-of-list {
+  text-align: center;
+  padding: 10px;
+  font-size: 16px;
+  color: #888;
+}
+
+
+
+
+.sidebar-container {
+  height: calc(100vh - 60px); /* Adjust based on the height of other elements like headers */
+  overflow-y: auto; 
+  /* Ensure sidebar handles its own scrolling */
+}
+
 

@@ -17,6 +17,10 @@ export default async function handler(req, res) {
 
     const name = req.query.name;
 
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Name query parameter is required' });
+    }
+
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET
@@ -32,6 +36,10 @@ export default async function handler(req, res) {
       userId: 'me',
       q: `from:${name}`,
     });
+
+    if (!gmailResponse.data.messages || gmailResponse.data.messages.length === 0) {
+      return res.status(200).json({ uniqueClients: [] });
+    }
 
     const uniqueClients = new Map();
 

@@ -2,7 +2,7 @@ import DefaultMessage from "../components/DefaultMessage";
 import DetailPanel from "../components/DetailsPanel";
 import Sidebar from "../components/Sidebar";
 // import { createClient } from "@supabase/supabase-js";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 // import Login from "../components/Login"; // Update the path
 import { setCookie } from "nookies";
 import { parse } from "cookie";
@@ -21,6 +21,9 @@ import withAuth from "../utils/withAuth";
 import LoginPage from "./auth/login";
 
 import { supabase } from '../utils/supabaseClient';
+import debounce from 'lodash.debounce'; // Make sure to install lodash.debounce if you don't have it
+import { AiOutlineSearch, AiOutlineClose } from 'react-icons/ai'; // Optional: Using React Icons for search and clear icons
+
 const Home = () => {
   const router = useRouter();
   const indi = router.params?.indi;
@@ -353,72 +356,98 @@ const Home = () => {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-
-
-
- 
-  // end
-  useEffect(() => {
-    const getEmails = async () => {
-      try {
-        const response = await fetch('/api/fetch-emails?label=INBOX');
-        const data = await response.json();
-
-        if (response.ok) {
-          setEmails(data.uniqueClients);
-        } else {
-          setError(data.error);
-        }
-      } catch (err) {
-        console.error('Error fetching emails:', err);
-        setError(err.message);
-      }
-    };
-
-    getEmails();
-  }, []);
-
+  const [hasMore, setHasMore] = useState(true);
+  const [pageToken, setPageToken] = useState('');
+  const observer = useRef();
+  const initialLoad = useRef(true); // Ref to track initial load
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchActive, setSearchActive] = useState(false);
+
+
+  const fetchEmails = useCallback(async (token = null) => {
+    if (loading || !hasMore || searchActive) return; // Prevent fetching if search is active
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/fetch-emails?label=INBOX${token ? `&pageToken=${token}` : ''}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setEmails(prevEmails => {
+          const uniqueEmails = new Map(prevEmails.map(email => [email.email, email]));
+          data.uniqueClients.forEach(client => {
+            if (!uniqueEmails.has(client.email)) {
+              uniqueEmails.set(client.email, client);
+            }
+          });
+          return Array.from(uniqueEmails.values());
+        });
+        setPageToken(data.nextPageToken); // Update with the nextPageToken from the response
+        setHasMore(data.nextPageToken !== null);
+      } else {
+        setError(data.error);
+      }
+    } catch (err) {
+      console.error('Error fetching emails:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, hasMore]);
+
+  useEffect(() => {
+    if (!searchActive && initialLoad.current) {
+      fetchEmails();
+      initialLoad.current = false; // Set to false after the first load
+    }
+  }, [searchActive,fetchEmails]);
+
+  const lastEmailRef = useCallback(node => {
+    if (loading || searchActive) return; // Prevent fetching while searching
+  
+    if (observer.current) observer.current.disconnect();
+  
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        fetchEmails(pageToken); // Fetch more emails when the observer intersects
+      }
+    });
+  
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore, pageToken, searchActive, fetchEmails]);
+  
 
   const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setError('Please enter a name to search.');
+      return;
+    }
     setLoading(true);
+    setError(null);
+    setSearchActive(true); // Set search as active
+    setHasMore(false); // Prevent infinite scroll while searching
     try {
-      const response = await fetch(`/api/fetchby-name?name=${searchTerm}`);
+      const response = await fetch(`/api/fetchby-name?name=${encodeURIComponent(searchTerm)}`);
       const data = await response.json();
-      setEmails(data.uniqueClients);
+      if (data.uniqueClients.length === 0) {
+        setError('No data found.');
+      } else {
+        setSearchResults(data.uniqueClients); 
+      }
     } catch (error) {
       console.error('Error fetching emails:', error);
+      setError('Error fetching emails.');
     } finally {
       setLoading(false);
     }
   };
-
-
-
-  // // const [loading, setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   const fetchEmailCounts = async () => {
-  //     try {
-  //       // Fetch count of sent emails
-  //       const sentResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=SENT');
-  //       const sentData = await sentResponse.json();
-  //       setSentEmailCount(sentData.count);
-
-  //       // Fetch count of received emails
-  //       const receivedResponse = await fetch('/api/fetch-email-count?sender='+selectedData['Email']+'&type=RECIEVE');
-  //       const receivedData = await receivedResponse.json();
-  //       setReceivedEmailCount(receivedData.count);
-  //     } catch (error) {
-  //       console.error('Error fetching email counts:', error);
-  //     } finally {
-  //       setisLoading(false);
-  //     }
-  //   };
-
-  //   fetchEmailCounts();
-  // }, []);
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setSearchResults([]); // Clear search results
+    setSearchActive(false); // Reset search status
+    setHasMore(true); // Enable infinite scroll again
+    setError(null);
+  };
 
   useEffect(() => {
     if (selectedName) {
@@ -506,136 +535,100 @@ const Home = () => {
             </button> */}
 
               {/* Sidebar */}
-              <ResizablePanelGroup
-        direction="horizontal"
-        className=""
-      >
-  <ResizablePanel defaultSize={20}>
-  <div
-                className={`w-[320px]
-                ${
-                  showSidebar ? "" : "hidden"
-                }`}
-              >
-                {showSidebar && (
-                  <>
-                  {/* <div>
-        <h1>Emails</h1>
-        <ul>
-          {emails.map(email => (
-            <li key={email.id}>
-              <div>Subject: {email.subject}</div>
-            </li>
-          ))}
-        </ul>
-        {nextPageToken && (
-          <button onClick={handleLoadMore}>Load More</button>
-        )}
-      </div> */}
-                <div>
-                <div style={{ display: 'flex', width: '100%',paddingLeft: '8px',paddingRight: '25px', marginTop: '15px', marginBottom:'10px',marginLeft:'5px' }}>
-                  <input
-                    type="text"
-                    placeholder="Search by name"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{
-                      padding: "10px",
-                      flex: 1,
-                      marginRight: "5px",
-                      border: "1px solid #1c1c1c",
-                      borderRadius: "5px",
-                    }}
-                    className="bg-white dark:bg-black text-black dark:text-gray-600"
-                  />
-                  <button
-                    onClick={handleSearch}
-                    style={{
-                      padding: "10px",
-                      border: "1px solid #1c1c1c",
-                      borderRadius: "5px",
-                      background: "#1c1c1c",
-                      color: "#fff",
-                    }}
-                    className="dark:bg-[#1c1c1c] bg-black text-white"
-                  >
-                    Search
-                  </button>
-                </div>
-                  {loading ? (
-                    <p>Loading . . .</p>
-                  ) : (
-                    <Sidebar
-                      data={emails}
-                      activeNameId={activeNameId}
-                      onSelectName={handleSelectName}
-                    />
-                  )}
-                </div>
-                  {/* <Sidebar
-                    data={emails}
-                    activeNameId={activeNameId}
-                    onSelectName={handleSelectName}
-                  /> */}
-                  </>
-                )}
-              </div>
-        </ResizablePanel>
-        <ResizableHandle withHandle className="ress" />
-        <ResizablePanel className="flex-grow overflow-y-auto" defaultSize={80}>
-        {/* <div className=""> */}
-                
-                {selectedName ? (
-                  <DetailPanel
-                  // emaillist={emails}
-                  // pageToken={nextPageToken}
-                  // loadmore={handleLoadMore}
-                    selectedData={selectedName}
-                    sentEmails={sentEmails}
-                    receivedEmails={receivedEmails}
-                    sentEmailCount={sentEmailCount}
-                    receivedEmailCount={receivedEmailCount}
-                    onClose={handleCloseDetailPanel}
-                    messages={messages}
-                    loading={isLoading}
-                    extractedTexts={extractedTexts}
-                    setExtractedTexts={setExtractedTexts}
-                    extractedUrls={extractedUrls}
-                    handleExtractText={handleExtractText}
-                    loadingtext={loadingtext}
-                    currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
-                    incident={incident}
-                    publicview={false}
-                    activeTabs={activeTab}
-                  />
-                  // <DetailPanel
-                  // // emaillist={emails}
-                  // // pageToken={nextPageToken}
-                  // // loadmore={handleLoadMore}
-                  //   selectedData={selectedName}
-                  //   sentEmails={sentEmails}
-                  //   receivedEmails={receivedEmails}
-                  //   onClose={handleCloseDetailPanel}
-                  //   messages={messages}
-                  //   loading={isLoading}
-                  //   extractedTexts={extractedTexts}
-                  //   setExtractedTexts={setExtractedTexts}
-                  //   extractedUrls={extractedUrls}
-                  //   handleExtractText={handleExtractText}
-                  //   loadingtext={loadingtext}
-                  //   currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
-                  //   incident={incident}
-                  //   publicview={false}
-                  // />
-                ) : (
-                  <>
-                    {/* <DefaultMessage onlogout={handleLogout} /> */}
-                  </>
-                )}
-              {/* </div> */}
-        </ResizablePanel>
-      </ResizablePanelGroup>
               
+              <ResizablePanelGroup direction="horizontal" className="">
+                <ResizablePanel defaultSize={20.8} className="overflow-auto">
+                  <div className={`w-[320px] ${showSidebar ? "" : "hidden"} h-full`} style={{overflowY: 'auto'}}>
+                    {showSidebar && (
+                      <>
+                        <div style={{ display: 'flex', width: '100%', padding: '8px 25px 10px 5px', margin: '15px 0 15px' }}>
+                          <input
+                            type="text"
+                            placeholder="Search by name"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                              padding: "10px",
+                              flex: 1,
+                              marginRight: "5px",
+                              border: "1px solid #1c1c1c",
+                              borderRadius: "5px",
+                            }}
+                            className="bg-white dark:bg-black text-black dark:text-gray-600"
+                          />
+                          <button
+                            onClick={handleSearch}
+                            style={{
+                              padding: "10px",
+                              border: "1px solid #1c1c1c",
+                              borderRadius: "5px",
+                              background: "#1c1c1c",
+                              color: "#fff",
+                            }}
+                            className="dark:bg-[#1c1c1c] bg-black text-white"
+                          >
+                            <AiOutlineSearch size={20} />
+                          </button>
+                          <button
+                            onClick={handleClearSearch}
+                            style={{
+                              padding: "10px",
+                              border: "1px solid #1c1c1c",
+                              borderRadius: "5px",
+                              background: "#e0e0e0", // Light gray background for clear button
+                              color: "#1c1c1c",
+                              marginRight: "5px",
+                            }}
+                            className="dark:bg-[#333] bg-gray-200 text-black"
+                          >
+                            <AiOutlineClose size={20} />
+                          </button>
+                          
+                        </div>
+                        {error && <p className="error">{error}</p>}
+                        <Sidebar
+                          data={searchActive ? searchResults : emails}
+                          activeNameId={activeNameId}
+                          onSelectName={handleSelectName}
+                          loading={loading}
+                          hasMore={hasMore}
+                          lastEmailRef={lastEmailRef}
+                        />
+                      </>
+                    )}
+                  </div>
+                </ResizablePanel>
+
+                <ResizableHandle withHandle className="ress" />
+                <ResizablePanel className="flex-grow overflow-y-auto" defaultSize={80}>
+                  {/* Details Panel content */}
+                  {selectedName ? (
+                    <DetailPanel
+                      selectedData={selectedName}
+                      sentEmails={sentEmails}
+                      receivedEmails={receivedEmails}
+                      sentEmailCount={sentEmailCount}
+                      receivedEmailCount={receivedEmailCount}
+                      onClose={handleCloseDetailPanel}
+                      messages={messages}
+                      loading={isLoading}
+                      extractedTexts={extractedTexts}
+                      setExtractedTexts={setExtractedTexts}
+                      extractedUrls={extractedUrls}
+                      handleExtractText={handleExtractText}
+                      loadingtext={loadingtext}
+                      currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
+                      incident={incident}
+                      publicview={false}
+                      activeTabs={activeTab}
+                    />
+                  ) : (
+                    <>
+                    </>
+                    // Optionally add default content here if needed
+                  )}
+                </ResizablePanel>
+              </ResizablePanelGroup>
 
               {/* Dashboard */}
               
