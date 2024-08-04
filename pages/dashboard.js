@@ -390,6 +390,7 @@ const Home = () => {
     } catch (err) {
       console.error('Error fetching emails:', err);
       setError(err.message);
+      setLoading(false);
     } finally {
       setLoading(false);
     }

@@ -21,7 +21,16 @@ const IndividualCLient = () => {
   //   const clientNAME = clientquery?.split("id=")[0];
   //   let clientID = clientquery?.split("id=")[1];
   console.log(clientID);
+  const { client } = router.query;
+  const queryParams = router.query; // Contains query parameters
 
+  // Extract the parameters you need
+  const selectedData = {
+    Email: queryParams.Email,
+    Name: queryParams.Name,
+  };
+
+  console.log('selectedData',selectedData);
   const [selectedName, setSelectedName] = useState(null);
   const [showSidebar, setShowSidebar] = useState(true);
   const [sentEmails, setSentEmails] = useState([]);
@@ -36,7 +45,9 @@ const IndividualCLient = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [masterData, setMasterData] = useState([]);
   const [activeNameId, setActiveNameId] = useState(null);
-
+  const [sentEmailCount, setSentEmailCount] = useState(0);
+  const [receivedEmailCount, setReceivedEmailCount] = useState(0);
+  const [error, setError] = useState(null);
   async function fetchAllData() {
     const tableName = "Clients";
     let offset = 0;
@@ -66,27 +77,28 @@ const IndividualCLient = () => {
 
     return allRows;
   }
+ 
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     const allData = await fetchAllData();
+  //     setMasterData(allData);
+  //   }
 
-  useEffect(() => {
-    async function fetchData() {
-      const allData = await fetchAllData();
-      setMasterData(allData);
-    }
-
-    if (clientID) {
-      fetchData();
-    }
-  }, [clientID]);
+  //   if (clientID) {
+  //     fetchData();
+  //   }
+  // }, [clientID]);
 
   useEffect(() => {
     // Trigger handleSelectName when masterData is updated
-    if (masterData.length > 0 && clientID) {
-      const foundName = masterData.find((row) => row?.Email === clientID);
-      if (foundName) {
-        handleSelectName(foundName?.Email);
-      }
-    }
-  }, [masterData, clientID]);
+    handleSelectName(selectedData);
+    // if (masterData.length > 0 && clientID) {
+    //   const foundName = masterData.find((row) => row?.Email === clientID);
+    //   if (foundName) {
+    //     handleSelectName(foundName?.Email);
+    //   }
+    // }
+  }, [clientID]);
 
   const handleExtractText = async (pdfLink, index, type) => {
     try {
@@ -205,8 +217,8 @@ const IndividualCLient = () => {
     // const selectedRow = emails.find((row) => row.id === ID);
     // // const selectedRowW = sheetdata3.find((row) => row[0] === name);
     
-    const selectedRow = data;
-    console.log(selectedRow)
+    // const selectedRow = data;
+    // console.log(selectedRow)
     // let name = "Unknown";
     // let email = "Unknown";
     // const headers = selectedRow.payload.headers;
@@ -221,11 +233,11 @@ const IndividualCLient = () => {
     //   }
       
     // }
-    const selectedData = {
-      'Email': selectedRow.email,
-      'Name': selectedRow.name,
+    // const selectedData = {
+    //   'Email': selectedRow.email,
+    //   'Name': selectedRow.name,
 
-    }
+    // }
     setSelectedName(selectedData);
     setisLoading(true);
     console.log(selectedName);
@@ -234,14 +246,25 @@ const IndividualCLient = () => {
     // const { data, error } = supabase.from('EmailData').select('*').eq("email", )
 
     try {
-      const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=INBOX&type=RECIEVE');
+      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedData.Email+'&label=SENT&type=SENT');
+      const { emails: SentEmails, error} = await Sentresponse.json();
+
+      if (Sentresponse.ok) {
+        //console.log('sent emails',emails);
+        setSentEmails(SentEmails);
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+
+      const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedData.Email+'&label=INBOX&type=RECIEVE');
       const { emails: receivedEmails, error: semailError } = await Receivedresponse.json();
 
       if (Receivedresponse.ok) {
         //setEmails(data.emails);
        // SentEmails = data.emails;
         // setSentEmails(SentEmails);
-        console.log('sent emails',emails);
+       // console.log('sent emails',emails);
         //setSentEmails(SentEmails);
         setReceivedEmails(receivedEmails);
         // setIncident(IncidentData);
@@ -250,16 +273,34 @@ const IndividualCLient = () => {
       } else {
         setError(data.error);
       }
-      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
-      const { emails: SentEmails, error} = await Sentresponse.json();
+      
 
-      if (Sentresponse.ok) {
-        console.log('sent emails',emails);
-        setSentEmails(SentEmails);
+      // Fetch count of sent emails
+      const sentCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedData.Email+'&type=SENT');
+      const sentData = await sentCountResponse.json();
+      
+      if (sentCountResponse.ok) {
+        //console.log('sent emails',emails);
+        setSentEmailCount(sentData.count);
         setisLoading(false);
       } else {
         setError(data.error);
       }
+      // Fetch count of received emails
+      const receivedCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedData.Email+'&type=RECIEVE');
+      const receivedData = await receivedCountResponse.json();
+      if (receivedCountResponse.ok) {
+        //console.log('sent emails',emails);
+        setReceivedEmailCount(receivedData.count);
+        setisLoading(false);
+      } else {
+        setError(data.error);
+      }
+      // if(SentEmails.length > 0){
+      //   setActiveTab('sent');
+      // }else{
+      //   setActiveTab('received');
+      // }
 
     } catch (err) {
       console.error('Error fetching emails:', err);
@@ -277,11 +318,11 @@ const IndividualCLient = () => {
     //   .select("*")
     //   .eq("FROM", selectedRow.Email); // Assuming 'Email' is the column name that links data between the tables
     //   // step 2 to crete tab on dashboard and get messages or data from supabase 
-    const { data: Messages, error: messageError } = await supabase
-      .from('Chats')
-      .select('*')
-      .eq('Chat Session', selectedRow?.Name); // Assuming 'Email' is the column name that links data between the tables
-      console.log(Messages);
+    // const { data: Messages, error: messageError } = await supabase
+    //   .from('Chats')
+    //   .select('*')
+    //   .eq('Chat Session', selectedRow?.Name); // Assuming 'Email' is the column name that links data between the tables
+    //   console.log(Messages);
     // const { data: IncidentData, error: incidenterror } = await supabase
     //   .from("Complaints")
     //   .select("*")
@@ -299,15 +340,15 @@ const IndividualCLient = () => {
     //   console.error("incidenterror", incidenterror);
     //   return;
     // }
-    if (messageError) {
-      console.error("messageerror", messageError);
-      return;
-    }
+    // if (messageError) {
+    //   console.error("messageerror", messageError);
+    //   return;
+    // }
 
     // setSentEmails(SentEmails);
     // setReceivedEmails(ReceivedEmails);
     // setIncident(IncidentData);
-    setMessages(Messages)
+    // setMessages(Messages)
     setisLoading(false);
 
     // console.log(sentEmails);
@@ -380,8 +421,10 @@ const IndividualCLient = () => {
               selectedData={selectedName}
               sentEmails={sentEmails}
               receivedEmails={receivedEmails}
+              sentEmailCount={sentEmailCount}
+              receivedEmailCount={receivedEmailCount}
               onClose={handleCloseDetailPanel}
-              messages={messages}
+              // messages={messages}
               loading={isLoading}
               extractedTexts={extractedTexts}
               setExtractedTexts={setExtractedTexts}

@@ -1,6 +1,30 @@
 import { google } from 'googleapis';
 import cookie from 'cookie';
 
+const getOAuth2Client = (accessToken, refreshToken) => {
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET
+  );
+
+  oauth2Client.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  return oauth2Client;
+};
+
+const refreshAccessToken = async (oauth2Client) => {
+  try {
+    const { credentials } = await oauth2Client.refreshToken(oauth2Client.credentials.refresh_token);
+    return credentials.access_token;
+  } catch (error) {
+    console.error('Error refreshing access token:', error);
+    throw new Error('Failed to refresh access token');
+  }
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -15,18 +39,18 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No OAuth tokens found' });
     }
 
+    let oauth2Client = getOAuth2Client(accessToken, refreshToken);
+
+    // Check if the access token is expired and refresh if needed
+    try {
+      await oauth2Client.getTokenInfo(accessToken);
+    } catch {
+      const newAccessToken = await refreshAccessToken(oauth2Client);
+      oauth2Client = getOAuth2Client(newAccessToken, refreshToken);
+    }
+
     const label = req.query.label;
     const pageToken = req.query.pageToken || null;
-
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET
-    );
-
-    oauth2Client.setCredentials({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
 
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 

@@ -490,7 +490,7 @@ const DetailPanel = ({
     });
   };
 
-
+  const queryParams = new URLSearchParams(selectedData).toString();
   
   
   return (
@@ -528,9 +528,11 @@ const DetailPanel = ({
             <Link
               target="_blank"
               onClick={() =>
-                copy(`https://justice-minds.com/share/${selectedData["Email"]}`)
+                copy(`https://justice-minds.com/share/${queryParams}`)
               }
-              href={`/share/${selectedData["Email"]}`}
+              // href={`/share?${queryParams}`}
+              href={`/share/${selectedData.Email}?${queryParams}`}
+              // onClick={handleClick}
               className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md"
             >
               Share Page
