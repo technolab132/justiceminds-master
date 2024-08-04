@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import { FaAlignRight, FaSun } from "react-icons/fa";
+import { FaAlignRight, FaSun, FaUserCircle } from "react-icons/fa";
 import { logout } from '../utils/auth';
 const Navbar = () => {
   const router = useRouter();
@@ -156,12 +156,24 @@ const Navbar = () => {
             </a>
           </li> */}
           <li>
-            <a className={`hover:underline text-[15px]  ${
+          <div >
+            <DropdownMenu>
+              <DropdownMenuTrigger >
+                <FaUserCircle className="text-2xl cursor-pointer" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="dark bg-black border-gray-800 absolute right-0 ml-4 top-full mt-2 z-[3000]">
+                <DropdownMenuItem onClick={logout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+            {/* <a className={`hover:underline text-[15px]  ${
                 router.pathname === "/" ? "dark:text-white text-gray-900"
                 : "dark:text-gray-500 text-gray-500"
               }`} href="" onClick={logout}>
               Logout
-            </a>
+            </a> */}
           </li>
         </ul>
       </div>
