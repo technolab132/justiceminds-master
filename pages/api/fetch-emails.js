@@ -4,7 +4,8 @@ import cookie from 'cookie';
 const getOAuth2Client = (accessToken, refreshToken) => {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET
+    process.env.GOOGLE_CLIENT_SECRET,
+    `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` // Ensure this matches your redirect URI
   );
 
   oauth2Client.setCredentials({
@@ -20,7 +21,7 @@ const refreshAccessToken = async (oauth2Client) => {
     const { credentials } = await oauth2Client.refreshToken(oauth2Client.credentials.refresh_token);
     return credentials.access_token;
   } catch (error) {
-    console.error('Error refreshing access token:', error);
+    console.error('Error refreshing access token:', error.response ? error.response.data : error.message);
     throw new Error('Failed to refresh access token');
   }
 };
@@ -45,8 +46,24 @@ export default async function handler(req, res) {
     try {
       await oauth2Client.getTokenInfo(accessToken);
     } catch {
-      const newAccessToken = await refreshAccessToken(oauth2Client);
-      oauth2Client = getOAuth2Client(newAccessToken, refreshToken);
+      console.log('Access token expired or invalid, attempting to refresh...');
+      try {
+        const newAccessToken = await refreshAccessToken(oauth2Client);
+        oauth2Client = getOAuth2Client(newAccessToken, refreshToken);
+        // Update cookies with the new access token
+        res.setHeader('Set-Cookie', [
+          cookie.serialize('access_token', newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 7, // 1 week
+            sameSite: 'strict',
+            path: '/'
+          })
+        ]);
+      } catch (refreshError) {
+        console.error('Failed to refresh access token, redirecting to authentication:', refreshError);
+        return res.status(401).json({ error: 'auth_required', message: 'Please authenticate again' });
+      }
     }
 
     const label = req.query.label;

@@ -14,10 +14,9 @@ const Callback = () => {
         return;
       }
 
-      if (data?.session) {
+      if (data.session) {
         const accessToken = data.session.provider_token;
         const refreshToken = data.session.refresh_token;
-
         Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
         Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
       }

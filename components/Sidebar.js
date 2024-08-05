@@ -10,7 +10,7 @@ const Sidebar = ({ data, activeNameId, onSelectName, loading, hasMore, lastEmail
         flexDirection: "column",
         alignItems: "flex-start",
         padding: "0px 2px 6px 6px",
-        height: "100%",
+        height: "85%",
         width: "100%",
       }}
       className="sidebar-container"
@@ -52,8 +52,15 @@ const Sidebar = ({ data, activeNameId, onSelectName, loading, hasMore, lastEmail
         </div>
       )}
       {/* {!loading && !hasMore && <div className="end-of-list">No more emails to load.</div>} */}
-      <div ref={lastEmailRef} style={{ height: '1px' }} /> {/* Ensure this div is visible to observer */}
+      <div
+        ref={lastEmailRef}
+        style={{
+          height: '50px', // Increased height
+          border: '1px solid transparent', // Added border to make it occupy space
+        }}
+      />
     </div>
+
   );
 };
 

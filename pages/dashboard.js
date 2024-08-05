@@ -371,7 +371,12 @@ const Home = () => {
       setLoading(true);
       const response = await fetch(`/api/fetch-emails?label=INBOX${token ? `&pageToken=${token}` : ''}`);
       const data = await response.json();
-
+      if (data.error === 'auth_required') {
+        // Redirect to authentication callback
+        const { error } = await supabase.auth.signOut();
+        window.location.href = '/auth/login';
+        return;
+      }
       if (response.ok) {
         setEmails(prevEmails => {
           const uniqueEmails = new Map(prevEmails.map(email => [email.email, email]));
@@ -388,9 +393,12 @@ const Home = () => {
         setError(data.error);
       }
     } catch (err) {
+      setLoading(false);
       console.error('Error fetching emails:', err);
       setError(err.message);
-      setLoading(false);
+      setHasMore(false)
+      return
+      
     } finally {
       setLoading(false);
     }
@@ -539,7 +547,7 @@ const Home = () => {
               
               <ResizablePanelGroup direction="horizontal" className="">
                 <ResizablePanel defaultSize={20.8} className="overflow-auto">
-                  <div className={`w-[320px] ${showSidebar ? "" : "hidden"} h-full`} style={{overflowY: 'auto'}}>
+                  <div className={`w-[320px] ${showSidebar ? "" : "hidden"} h-full`}>
                     {showSidebar && (
                       <>
                         <div style={{ display: 'flex', width: '100%', padding: '8px 25px 10px 5px', margin: '15px 0 15px' }}>
@@ -548,6 +556,11 @@ const Home = () => {
                             placeholder="Search by name"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSearch();
+                              }
+                            }}
                             style={{
                               padding: "10px",
                               flex: 1,
@@ -558,33 +571,18 @@ const Home = () => {
                             className="bg-white dark:bg-black text-black dark:text-gray-600"
                           />
                           <button
-                            onClick={handleSearch}
-                            style={{
-                              padding: "10px",
-                              border: "1px solid #1c1c1c",
-                              borderRadius: "5px",
-                              background: "#1c1c1c",
-                              color: "#fff",
-                            }}
-                            className="dark:bg-[#1c1c1c] bg-black text-white"
-                          >
-                            <AiOutlineSearch size={20} />
-                          </button>
-                          <button
                             onClick={handleClearSearch}
                             style={{
                               padding: "10px",
                               border: "1px solid #1c1c1c",
                               borderRadius: "5px",
-                              background: "#e0e0e0", // Light gray background for clear button
-                              color: "#1c1c1c",
-                              marginRight: "5px",
+                              background: "#1c1c1c", // Match the background color of the search button
+                              color: "#fff", // Match the text color of the search button
                             }}
-                            className="dark:bg-[#333] bg-gray-200 text-black"
+                            className="dark:bg-[#1c1c1c] bg-black text-white"
                           >
                             <AiOutlineClose size={20} />
                           </button>
-                          
                         </div>
                         {error && <p className="error">{error}</p>}
                         <Sidebar

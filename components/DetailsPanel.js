@@ -377,15 +377,66 @@ const DetailPanel = ({
     }
     return [];
   };
-  const [bodyFormat, setBodyFormat] = useState({}); // State to store body format for each email
+  const [bodyFormat, setBodyFormat] = useState({}); // Initialize as an empty object
 
+  // Function to handle format toggle
   const handleToggleFormat = (emailId, format) => {
-    setBodyFormat(prevState => ({ ...prevState, [emailId]: format }));
+    setBodyFormat(prevState => ({
+      ...prevState,
+      [emailId]: format
+    }));
   };
+
+  const [receivedBodyFormat, setReceivedBodyFormat] = useState({});
+  const [sentBodyFormat, setSentBodyFormat] = useState({});
+  
+  // Function to handle format toggle for received emails
+  const handleToggleReceivedFormat = (emailId, format) => {
+    setReceivedBodyFormat(prevState => ({
+      ...prevState,
+      [emailId]: format
+    }));
+  };
+  
+  // Function to handle format toggle for sent emails
+  const handleToggleSentFormat = (emailId, format) => {
+    setSentBodyFormat(prevState => ({
+      ...prevState,
+      [emailId]: format
+    }));
+  };
+  
+  // Set default formats when received or sent emails change
+  useEffect(() => {
+    const initialReceivedFormats = receivedEmails.reduce((acc, email) => {
+      acc[email.id] = 'text/plain'; // Default format
+      return acc;
+    }, {});
+  
+    setReceivedBodyFormat(prevState => ({ ...prevState, ...initialReceivedFormats }));
+  }, [receivedEmails]);
+  
+  useEffect(() => {
+    const initialSentFormats = sentEmails.reduce((acc, email) => {
+      acc[email.id] = 'text/plain'; // Default format
+      return acc;
+    }, {});
+  
+    setSentBodyFormat(prevState => ({ ...prevState, ...initialSentFormats }));
+  }, [sentEmails]);
+  
 
   // for html body
   const decodeBase64UrlSafe = (str) => {
-    return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+    try {
+      // Handle any potential issues with padding
+      const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(base64);
+      return decodeURIComponent(escape(decoded));
+    } catch (e) {
+      console.error("Error decoding Base64 string", e);
+      return '';
+    }
   };
 
   // Function to find and decode the text and HTML parts
@@ -427,6 +478,7 @@ const DetailPanel = ({
         }
       });
     }
+    htmlBody = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${htmlBody}</body></html>`;
   
     return { textBody, htmlBody, inlineImages };
   };
@@ -436,31 +488,46 @@ const DetailPanel = ({
   
   // Fetch and replace inline images
   useEffect(() => {
-    receivedEmails.forEach(async (email) => {
-      const { htmlBody, inlineImages } = getBodyData(email.payload);
-      if (Object.keys(inlineImages).length > 0) {
-        const modifiedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
-        setRecievedHtmlBodies(prev => ({ ...prev, [email.id]: modifiedHtmlBody }));
-      } else {
-        setRecievedHtmlBodies(prev => ({ ...prev, [email.id]: htmlBody }));
-      }
-      // const recievedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
-      // setRecievedHtmlBodies(prev => ({ ...prev, [email.id]: recievedHtmlBody }));
-    });
-    sentEmails.forEach(async (email) => {
-      const { htmlBody, inlineImages } = getBodyData(email.payload);
-      console.log('inlineImages for sent',inlineImages);
-      if (Object.keys(inlineImages).length > 0) {
-        const modifiedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
-        setSentHtmlBodies(prev => ({ ...prev, [email.id]: modifiedHtmlBody }));
-      } else {
-        setSentHtmlBodies(prev => ({ ...prev, [email.id]: htmlBody }));
-      }
-      //setSentHtmlBodies(prev => ({ ...prev, [email.id]: sentHtmlBodies }));
-      
-    });
-  }, [receivedEmails,sentEmails]);
-
+    const fetchEmailData = async () => {
+      const receivedPromises = receivedEmails.map(async (email) => {
+        const { htmlBody, inlineImages } = getBodyData(email.payload);
+        if (Object.keys(inlineImages).length > 0) {
+          const modifiedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
+          return { id: email.id, body: modifiedHtmlBody };
+        } else {
+          return { id: email.id, body: htmlBody };
+        }
+      });
+  
+      const sentPromises = sentEmails.map(async (email) => {
+        const { htmlBody, inlineImages } = getBodyData(email.payload);
+        if (Object.keys(inlineImages).length > 0) {
+          const modifiedHtmlBody = await replaceInlineImages(email.id, htmlBody, inlineImages);
+          return { id: email.id, body: modifiedHtmlBody };
+        } else {
+          return { id: email.id, body: htmlBody };
+        }
+      });
+  
+      // Wait for all promises to resolve
+      const receivedResults = await Promise.all(receivedPromises);
+      const sentResults = await Promise.all(sentPromises);
+  
+      // Update state after all promises are resolved
+      setRecievedHtmlBodies(receivedResults.reduce((acc, { id, body }) => {
+        acc[id] = body;
+        return acc;
+      }, {}));
+  
+      setSentHtmlBodies(sentResults.reduce((acc, { id, body }) => {
+        acc[id] = body;
+        return acc;
+      }, {}));
+    };
+  
+    fetchEmailData();
+  }, [receivedEmails, sentEmails]);
+  
   // Function to fetch and replace inline images with base64 data
   const replaceInlineImages = async (emailId, html, inlineImages) => {
     if (!html) return '';
@@ -488,6 +555,12 @@ const DetailPanel = ({
         return match;
       }
     });
+  };
+
+  const [isOpenAccordion, setIsOpenAccordion] = useState(null);
+
+  const toggleAccordion = (emailId) => {
+    setIsOpenAccordion(isOpenAccordion === emailId ? null : emailId);
   };
 
   const queryParams = new URLSearchParams(selectedData).toString();
@@ -823,7 +896,7 @@ const DetailPanel = ({
                     // Get the body data from the email payload
                     const { textBody } = getBodyData(email.payload);
                     console.log('sentHtmlBodies',sentHtmlBodies);
-                    const bodyData = bodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
+                    const bodyData = sentBodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
 
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
@@ -862,26 +935,33 @@ const DetailPanel = ({
                             <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
+                              
                               {pdfAttachmentId && (
-                                    <button onClick={handleViewPdf}>
-                                      View PDF
-                                    </button>
-                                  )}
+                                <>
+                                  <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
+                                  <button onClick={handleViewPdf}> View PDF</button>
+                                </>
+                              )}
                               <br /><br />
                               {`--------------------------------`}
                               <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
                               <div className="flex gap-2 mb-2">
-                                <button onClick={() => handleToggleFormat(emailId, 'text/plain')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
-                                  Show Text
+                                <button
+                                  onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
+                                  className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                >
+                                Show Text
                                 </button>
-                                <button onClick={() => handleToggleFormat(emailId, 'text/html')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                <button
+                                  onClick={() => handleToggleSentFormat(email.id, 'text/html')}
+                                  className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                >
                                   Show HTML
                                 </button>
                               </div>
                               <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                {urlsInBody && urlsInBody.length > 0 && (
+                                {/* {urlsInBody && urlsInBody.length > 0 && (
                                   <>
                                     <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
                                     {`------------------`}
@@ -892,15 +972,13 @@ const DetailPanel = ({
                                     ))}
                                     {`------------------`}
                                   </>
-                                )}
-                                {bodyFormat[emailId] === 'text/plain' ? (
+                                )} */}
+                                {sentBodyFormat[emailId] === 'text/plain' ? (
                                   <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                     {bodyData}
                                   </p>
-                                ) : (
-                                  <div>
-                                    <ShadowDomWrapper htmlContent={bodyData} />
-                                  </div>
+                                ) : (              
+                                  <ShadowDomWrapper htmlContent={bodyData} />
                                 )}
                               </div>
                               {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
@@ -982,7 +1060,7 @@ const DetailPanel = ({
 
                     // Get the body data from the email payload
                     const { textBody } = getBodyData(email.payload);
-                    const bodyData = bodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                    const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                     console.log('emailid',emailId);
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
@@ -1038,26 +1116,32 @@ const DetailPanel = ({
                             <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
                               {pdfAttachmentId && (
-                                    <button onClick={handleViewPdf}>
-                                      View PDF
-                                    </button>
-                                  )}
+                                <>
+                                  <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
+                                  <button onClick={handleViewPdf}> View PDF</button>
+                                </>
+                              )}
                               <br /><br />
                               {`--------------------------------`}
                               <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
                               <div className="flex gap-2 mb-2">
-                                <button onClick={() => handleToggleFormat(emailId, 'text/plain')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                <button
+                                  onClick={() => handleToggleReceivedFormat(email.id, 'text/plain')}
+                                  className={`p-2 rounded ${receivedBodyFormat[email.id] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                >
                                   Show Text
                                 </button>
-                                <button onClick={() => handleToggleFormat(emailId, 'text/html')} className={`p-2 rounded ${bodyFormat[emailId] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                <button
+                                  onClick={() => handleToggleReceivedFormat(email.id, 'text/html')}
+                                  className={`p-2 rounded ${receivedBodyFormat[email.id] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                >
                                   Show HTML
                                 </button>
                               </div>
                               <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                {urlsInBody && urlsInBody.length > 0 && (
+                                {/* {urlsInBody && urlsInBody.length > 0 && (
                                   <>
                                     <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
                                     {`------------------`}
@@ -1070,15 +1154,13 @@ const DetailPanel = ({
                                     ))}
                                     {`------------------`}
                                   </>
-                                )}
-                                {bodyFormat[emailId] === 'text/plain' ? (
+                                )} */}
+                                {receivedBodyFormat[emailId] === 'text/plain' ? (
                                   <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                     {bodyData}
                                   </p>
                                 ) : (
-                                  <div>
-                                    <ShadowDomWrapper htmlContent={bodyData} />
-                                  </div>
+                                  <ShadowDomWrapper htmlContent={bodyData} />
                                 )}
                               </div>
                               <br />
@@ -1294,7 +1376,7 @@ const DetailPanel = ({
                 </ul>
               )}
 
-              {activeTab === "innerlinks" && (
+              {/* {activeTab === "innerlinks" && (
                 <ul className="">
                   <>
                     <table className="text-sm">
@@ -1312,7 +1394,7 @@ const DetailPanel = ({
                             const subjectHeader = headers.find(header => header.name === 'Subject');
                             const emailId = email.id;
                             const { textBody } = getBodyData(email.payload);
-                            const bodyData = bodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                            const bodyData = sentBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                             const innerLinks = extractUrlsFromText(bodyData);
                             const shortenUrl = (url) => {
                               try {
@@ -1357,7 +1439,7 @@ const DetailPanel = ({
                             const subjectHeader = headers.find(header => header.name === 'Subject');
                             const emailId = email.id;
                             const { textBody } = getBodyData(email.payload);
-                            const bodyData = bodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                            const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                             const innerLinks = extractUrlsFromText(bodyData);
                             const shortenUrl = (url) => {
                               try {
@@ -1397,7 +1479,145 @@ const DetailPanel = ({
                     <br />
                   </>
                 </ul>
+              )} */}
+              {activeTab === "innerlinks" && (
+                <ul className="">
+                  <>
+                    <table className="text-sm w-full">
+                      <thead>
+                        <tr className="text-black dark:text-white">
+                          <th className="p-1 border-1 font-semibold dark:border-[#393939] border-[#aaaaaa]">Date</th>
+                          <th className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Subject</th>
+                          <th className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Inner Link</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
+                          <>
+                            <p className="p-2 text-green-500">Sent</p>
+                            {sentEmails.map((email, index) => {
+                              const headers = email.payload.headers;
+                              const dateHeader = headers.find(header => header.name === 'Date');
+                              const subjectHeader = headers.find(header => header.name === 'Subject');
+                              const emailId = email.id;
+                              const { textBody } = getBodyData(email.payload);
+                              const bodyData = sentBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                              const innerLinks = extractUrlsFromText(bodyData);
+                              const shortenUrl = (url) => {
+                                try {
+                                  const urlObj = new URL(url);
+                                  return urlObj.hostname;
+                                } catch (error) {
+                                  console.error('Invalid URL:', url, error);
+                                  return url; // Fallback to original URL if invalid
+                                }
+                              };
+
+                              return (
+                                <>
+                                  <tr key={emailId} className="text-sm">
+                                    <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      {new Date(dateHeader.value).toLocaleString()}
+                                    </td>
+                                    <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      {subjectHeader.value}
+                                    </td>
+                                    <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      <button
+                                        className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"
+                                        onClick={() => toggleAccordion(emailId)}
+                                      >
+                                        {isOpenAccordion === emailId ? 'Hide Links' : 'View Links'}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                  {isOpenAccordion === emailId && (
+                                    <tr>
+                                      <td colSpan="3" className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                        <div className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
+                                          <ul className="rounded-md dark:bg-[#111111] bg-dark text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                            {innerLinks.map((link, linkIndex) => (
+                                              <li key={`${emailId}-${linkIndex}`}>
+                                                <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </>
+                              );
+                            })}
+                          </>
+                        )}
+                        {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
+                          <>
+                            <p className="p-3 text-green-500">Received</p>
+                            {receivedEmails.map((email, index) => {
+                              const headers = email.payload.headers;
+                              const dateHeader = headers.find(header => header.name === 'Date');
+                              const subjectHeader = headers.find(header => header.name === 'Subject');
+                              const emailId = email.id;
+                              const { textBody } = getBodyData(email.payload);
+                              const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                              const innerLinks = extractUrlsFromText(bodyData);
+                              const shortenUrl = (url) => {
+                                try {
+                                  const urlObj = new URL(url);
+                                  return urlObj.hostname;
+                                } catch (error) {
+                                  console.error('Invalid URL:', url, error);
+                                  return url; // Fallback to original URL if invalid
+                                }
+                              };
+
+                              return (
+                                <>
+                                  <tr key={emailId} className="text-sm">
+                                    <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      {new Date(dateHeader.value).toLocaleString()}
+                                    </td>
+                                    <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      {subjectHeader.value}
+                                    </td>
+                                    <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      <button
+                                        className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"
+                                        onClick={() => toggleAccordion(emailId)}
+                                      >
+                                        {isOpenAccordion === emailId ? 'Hide Links' : 'View Links'}
+                                      </button>
+                                    </td>
+                                  </tr>
+                                  {isOpenAccordion === emailId && (
+                                    <tr>
+                                      <td colSpan="3" className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                        <div className="p-2 mt-2 dark:bg-[#121212] rounded-lg">
+                                          <ul className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                            {innerLinks.map((link, linkIndex) => (
+                                              <li key={`${emailId}-${linkIndex}`}>
+                                                <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </>
+                              );
+                            })}
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                    <br />
+                  </>
+                </ul>
               )}
+
+
 
 
               {activeTab === "messages" && (

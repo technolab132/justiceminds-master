@@ -9,7 +9,18 @@ const ShadowDomWrapper = ({ htmlContent }) => {
       shadowRootRef.current = shadowHostRef.current.attachShadow({ mode: 'open' });
     }
     if (shadowRootRef.current) {
-      shadowRootRef.current.innerHTML = htmlContent;
+      shadowRootRef.current.innerHTML = `
+        <style>
+          :host {
+            background-color: #ffffff; /* off-white background */
+            display: block;
+            padding: 5px; /* optional padding */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+          }
+        </style>
+        ${htmlContent}
+      `;
     }
   }, [htmlContent]);
 
