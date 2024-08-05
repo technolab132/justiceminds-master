@@ -4,10 +4,11 @@ import LoadingComponent from "./LoadingComponent";
 import PDFViewer from "./PDFViewer";
 import { axiosRetry } from "./retryAxios"; // Import the axiosRetry function
 import copy from "clipboard-copy";
-import { createClient } from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js";
 import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
 import Link from "next/link";
+import { supabase } from '../utils/supabaseClient';
 import {
   Accordion,
   AccordionContent,
@@ -19,9 +20,9 @@ import ShadowDomWrapper from '../components/ShadowDomWrapper';
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
 });
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// const supabase = createClient(supabaseUrl, supabaseKey);
 // const axios = require("axios")
 const DetailPanel = ({
   // emaillist,
@@ -91,6 +92,7 @@ const DetailPanel = ({
         .eq("email", selectedData["Email"]);
 
       if (data) {
+        console.log('embed link',data);
         setMasterembedLink(data);
       }
 
@@ -209,32 +211,32 @@ const DetailPanel = ({
   //   }
   // };
 
-  // const handleEmbedLinkAdd = async () => {
-  //   try {
-  //     setisLoading(true);
-  //     setEmbedLink("");
-  //     const { data, error } = await supabase.from("Links").insert([
-  //       {
-  //         link: embedLink,
-  //         name: selectedData["Name"],
-  //         email: selectedData["Email"],
-  //       },
-  //     ]);
+  const handleEmbedLinkAdd = async () => {
+    try {
+      setisLoading(true);
+      setEmbedLink("");
+      const { data, error } = await supabase.from("Links").insert([
+        {
+          link: embedLink,
+          name: selectedData["Name"],
+          email: selectedData["Email"],
+        },
+      ]);
 
-  //     if (error) {
-  //       console.error("Error inserting data:", error.message);
-  //       setisLoading(false);
-  //     } else {
-  //       console.log("Data inserted successfully:", data);
-  //       setEmbedLink("");
-  //       setisLoading(false);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     setisLoading(false);
-  //   }
-  //   setisLoading(false);
-  // };
+      if (error) {
+        console.error("Error inserting data:", error.message);
+        setisLoading(false);
+      } else {
+        console.log("Data inserted successfully:", data);
+        setEmbedLink("");
+        setisLoading(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setisLoading(false);
+    }
+    setisLoading(false);
+  };
 
   const handleEmbedLinkAdd2 = async () => {
     try {
@@ -314,25 +316,7 @@ const DetailPanel = ({
       console.error("Error:", error);
     }
   };
-  // const getEmailContent = (email) => {
-  //   const showFullMessage = showFullMessages[email];
-
-  //   if (email.length > 100) {
-  //     return (
-  //       <p>
-  //         {showFullMessage ? email + " " : email.substring(0, 100) + "..."}
-  //         <button
-  //           style={{ color: "#fff" }}
-  //           onClick={() => handleToggleMessage(email)}
-  //         >
-  //           {showFullMessage ? "Show Less" : "Show More"}
-  //         </button>
-  //       </p>
-  //     );
-  //   }
-
-  //   return <p>{email}</p>;
-  // };
+ 
 
   // Function to fetch attachment data
   const fetchAttachment = async (emailId, attachmentId) => {
@@ -377,15 +361,7 @@ const DetailPanel = ({
     }
     return [];
   };
-  const [bodyFormat, setBodyFormat] = useState({}); // Initialize as an empty object
 
-  // Function to handle format toggle
-  const handleToggleFormat = (emailId, format) => {
-    setBodyFormat(prevState => ({
-      ...prevState,
-      [emailId]: format
-    }));
-  };
 
   const [receivedBodyFormat, setReceivedBodyFormat] = useState({});
   const [sentBodyFormat, setSentBodyFormat] = useState({});
