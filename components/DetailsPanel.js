@@ -14,14 +14,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../components/ui/accordion";
-
+import ShadowDomWrapper from '../components/ShadowDomWrapper';
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
 });
-// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-// const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 // const axios = require("axios")
 const DetailPanel = ({
   // emaillist,
@@ -81,33 +81,33 @@ const DetailPanel = ({
     setEmbedLink(content);
   }, 500);
   console.log('selected data',receivedEmailCount);
-  // useEffect(() => {
-  //   setisLoading(true);
-  //   // Fetch data from the Links table for the selected name
-  //   async function fetchData() {
-  //     const { data, error } = await supabase
-  //       .from("Links")
-  //       .select("*")
-  //       .eq("email", selectedData["Email"]);
+  useEffect(() => {
+    setisLoading(true);
+    // Fetch data from the Links table for the selected name
+    async function fetchData() {
+      const { data, error } = await supabase
+        .from("Links")
+        .select("*")
+        .eq("email", selectedData["Email"]);
 
-  //     if (data) {
-  //       setMasterembedLink(data);
-  //     }
+      if (data) {
+        setMasterembedLink(data);
+      }
 
-  //     if (error) {
-  //       console.error("Error fetching data:", error.message);
-  //     } else {
-  //       // If data exists for the selected name, set hasLink to true
-  //       setHasLink(data.length > 0);
-  //     }
-  //   }
+      if (error) {
+        console.error("Error fetching data:", error.message);
+      } else {
+        // If data exists for the selected name, set hasLink to true
+        setHasLink(data.length > 0);
+      }
+    }
 
-  //   if (selectedData["Email"]) {
-  //     fetchData();
-  //     setisLoading(false);
-  //   }
-  //   setisLoading(false);
-  // }, [selectedData["Email"]]);
+    if (selectedData["Email"]) {
+      fetchData();
+      setisLoading(false);
+    }
+    setisLoading(false);
+  }, [selectedData["Email"]]);
   
 
   // Function to open the PDF viewer
@@ -236,32 +236,32 @@ const DetailPanel = ({
   //   setisLoading(false);
   // };
 
-  // const handleEmbedLinkAdd2 = async () => {
-  //   try {
-  //     setisLoading(true);
-  //     setEmbedLink2("");
-  //     const { data, error } = await supabase.from("Links").insert([
-  //       {
-  //         link: `<iframe src=${embedLink2} width="100%" height="790px" frameBorder="0" style="border: 0;"></iframe><br>`,
-  //         name: selectedData["Name"],
-  //         email: selectedData["Email"],
-  //       },
-  //     ]);
+  const handleEmbedLinkAdd2 = async () => {
+    try {
+      setisLoading(true);
+      setEmbedLink2("");
+      const { data, error } = await supabase.from("Links").insert([
+        {
+          link: `<iframe src=${embedLink2} width="100%" height="790px" frameBorder="0" style="border: 0;"></iframe><br>`,
+          name: selectedData["Name"],
+          email: selectedData["Email"],
+        },
+      ]);
 
-  //     if (error) {
-  //       console.error("Error inserting data:", error.message);
-  //       setisLoading(false);
-  //     } else {
-  //       console.log("Data inserted successfully:", data);
-  //       setEmbedLink("");
-  //       setisLoading(false);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     setisLoading(false);
-  //   }
-  //   setisLoading(false);
-  // };
+      if (error) {
+        console.error("Error inserting data:", error.message);
+        setisLoading(false);
+      } else {
+        console.log("Data inserted successfully:", data);
+        setEmbedLink("");
+        setisLoading(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setisLoading(false);
+    }
+    setisLoading(false);
+  };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -819,39 +819,6 @@ const DetailPanel = ({
                     const emailId = email.id;// headers.find(header => header.name === 'Message-ID')?.value;
                     console.log('emailid',emailId);
 
-                    // Helper function to decode base64 url-safe string
-                    // const decodeBase64UrlSafe = (str) => {
-                    //   return atob(str.replace(/-/g, '+').replace(/_/g, '/'));
-                    // };
-
-                    // // Function to find and decode the text and HTML parts
-                    // const getBodyData = (payload) => {
-                    //   let textBody = 'No Message';
-                    //   let htmlBody = 'No Message';
-                  
-                    //   if (!payload.parts && payload.mimeType === 'text/html') {
-                    //     htmlBody = decodeBase64UrlSafe(payload.body.data);
-                    //   } else if (payload.parts) {
-                    //     payload.parts.forEach(part => {
-                    //       if (part.mimeType === 'multipart/alternative' && part.parts) {
-                    //         part.parts.forEach(subPart => {
-                    //           if (subPart.mimeType === 'text/plain') {
-                    //             textBody = decodeBase64UrlSafe(subPart.body.data);
-                    //           } else if (subPart.mimeType === 'text/html') {
-                    //             htmlBody = decodeBase64UrlSafe(subPart.body.data);
-                    //           }
-                    //         });
-                    //       } else if (part.mimeType === 'text/plain') {
-                    //         textBody = decodeBase64UrlSafe(part.body.data);
-                    //       } else if (part.mimeType === 'text/html') {
-                    //         htmlBody = decodeBase64UrlSafe(part.body.data);
-                    //       }
-                    //     });
-                    //   }
-                  
-                    //   return { textBody, htmlBody };
-                    // };
-
                     // Get the body data from the email payload
                     // Get the body data from the email payload
                     const { textBody } = getBodyData(email.payload);
@@ -931,10 +898,9 @@ const DetailPanel = ({
                                     {bodyData}
                                   </p>
                                 ) : (
-                                  <div 
-                                    className="text-black dark:text-white email-html-content"
-                                    dangerouslySetInnerHTML={{ __html: bodyData }} 
-                                  />
+                                  <div>
+                                    <ShadowDomWrapper htmlContent={bodyData} />
+                                  </div>
                                 )}
                               </div>
                               {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
@@ -1078,11 +1044,6 @@ const DetailPanel = ({
                                       View PDF
                                     </button>
                                   )}
-                              {/* {pdfLink ? (
-                                <button onClick={() => openPdfViewer(`https://drive.google.com/file/d/${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}/preview`)}>
-                                  View PDF
-                                </button>
-                              ) : 'No PDF'} */}
                               <br /><br />
                               {`--------------------------------`}
                               <br />
@@ -1115,11 +1076,9 @@ const DetailPanel = ({
                                     {bodyData}
                                   </p>
                                 ) : (
-                                  <div 
-                                    className="text-black dark:text-white" 
-                                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-                                    dangerouslySetInnerHTML={{ __html: bodyData }} 
-                                  />
+                                  <div>
+                                    <ShadowDomWrapper htmlContent={bodyData} />
+                                  </div>
                                 )}
                               </div>
                               <br />
@@ -1353,7 +1312,7 @@ const DetailPanel = ({
                             const subjectHeader = headers.find(header => header.name === 'Subject');
                             const emailId = email.id;
                             const { textBody } = getBodyData(email.payload);
-                            const bodyData = bodyFormat[emailId] === 'text/html' ? receivedHtmlBodies[emailId] || 'Loading...' : textBody;
+                            const bodyData = bodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                             const innerLinks = extractUrlsFromText(bodyData);
                             const shortenUrl = (url) => {
                               try {
@@ -1398,7 +1357,7 @@ const DetailPanel = ({
                             const subjectHeader = headers.find(header => header.name === 'Subject');
                             const emailId = email.id;
                             const { textBody } = getBodyData(email.payload);
-                            const bodyData = bodyFormat[emailId] === 'text/html' ? receivedHtmlBodies[emailId] || 'Loading...' : textBody;
+                            const bodyData = bodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                             const innerLinks = extractUrlsFromText(bodyData);
                             const shortenUrl = (url) => {
                               try {
