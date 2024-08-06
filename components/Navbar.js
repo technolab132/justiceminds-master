@@ -12,7 +12,18 @@ import { FaAlignRight, FaSun, FaUserCircle } from "react-icons/fa";
 import { logout } from '../utils/auth';
 const Navbar = () => {
   const router = useRouter();
+  const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Check if code is running on the client side
+      const storedUser = localStorage.getItem('sb-sbyocimrxpmvuelrqzuw-auth-token');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUser(userData.user); // Set the user data from the stored object
+      }
+    }
+  }, []);
   return (
     <div className="fixed top-0 z-[1000] w-full dark:bg-[#000] bg-white border-b border-b-1 dark:border-[#1c1c1c] border-[#e7e7e7] flex py-2 sm:py-3 flex-row justify-between items-center ">
       <a href="/" className="logo ml-5">
@@ -74,7 +85,7 @@ const Navbar = () => {
           </DropdownMenuContent>
         </DropdownMenu>
         <ul className="gap-5 hidden sm:flex">
-          <li>
+          <li style={{paddingTop:'6px'}}>
             <a
               className={`hover:underline text-[15px]  ${
                 router.pathname === "/" ? "dark:text-white text-gray-900"
@@ -157,16 +168,20 @@ const Navbar = () => {
           </li> */}
           <li>
           <div >
-            <DropdownMenu>
-              <DropdownMenuTrigger >
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              {user && user.user_metadata && user.user_metadata.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="User Profile" className="rounded-full w-8 h-8 cursor-pointer" />
+              ) : (
                 <FaUserCircle className="text-2xl cursor-pointer" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="dark bg-black border-gray-800 absolute right-0 ml-4 top-full mt-2 z-[3000]">
-                <DropdownMenuItem onClick={logout}>
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="dark bg-black border-gray-800 absolute right-0 ml-4 top-full mt-2 z-[3000]">
+              <DropdownMenuItem onClick={logout}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           </div>
             {/* <a className={`hover:underline text-[15px]  ${
                 router.pathname === "/" ? "dark:text-white text-gray-900"
