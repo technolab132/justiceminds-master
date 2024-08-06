@@ -633,7 +633,7 @@ const Home = () => {
                     />
                   ) : (
                     <div className="default-image-container">
-                     <img src="/logomain.png" className="mt-2" alt="image" width="600px" />
+                     <img src="/logomain.png" className="default-image" alt="image"/>
                     </div>
                   )}
                 </ResizablePanel>

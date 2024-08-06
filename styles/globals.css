@@ -368,3 +368,16 @@ body {
   height: 100vh; /* Full height to center vertically */
   width: 100%; /* Full width to center horizontally */
 }
+.default-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height to center vertically */
+  width: 100%; /* Full width to center horizontally */
+}
+
+.default-image {
+  max-width: 100%;
+  width: 400px; /* Adjust width as needed */
+  height: auto; /* Maintain aspect ratio */
+}
