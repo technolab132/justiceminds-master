@@ -37,14 +37,14 @@ export default async function handler(req, res) {
     let query = ''
     if(type == 'RECIEVE'){
       query = `from:${senderEmail}`;
-      if (label) {
-        query += ` label:${label}`;
-      }
+      // if (label) {
+      //   query += ` label:${label}`;
+      // }
     }else if(type == 'SENT'){
       query = `to:${senderEmail}`;
-      if (label) {
-        query += ` label:${label}`;
-      }
+      // if (label) {
+      //   query += ` label:${label}`;
+      // }
     }
     
     // Fetch emails with the specific sender email
