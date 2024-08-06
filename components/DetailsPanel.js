@@ -81,7 +81,7 @@ const DetailPanel = ({
   const handleComplaintChangeDebounced = debounce((content) => {
     setEmbedLink(content);
   }, 500);
-  console.log('selected data',receivedEmailCount);
+  console.log('selected data',selectedData);
   useEffect(() => {
     setisLoading(true);
     // Fetch data from the Links table for the selected name
@@ -633,7 +633,9 @@ const DetailPanel = ({
                       <span> Fetching . . . </span>
                     ) : (
                       <span className="">
-                        {new Date(sentEmails[sentEmails.length - 1]?.payload.headers[1].value).toLocaleString()}
+                        {new Date(
+                          sentEmails[sentEmails.length - 1]?.payload.headers.find(header => header.name === 'Date')?.value
+                        ).toLocaleString()}
                       </span>
                     )}
                   </p>
@@ -643,12 +645,15 @@ const DetailPanel = ({
                       <span> Fetching . . . </span>
                     ) : (
                       <span>
-                        {new Date(sentEmails[0]?.payload.headers[1].value).toLocaleString()}
+                        {new Date(
+                          sentEmails[0]?.payload.headers.find(header => header.name === 'Date')?.value
+                        ).toLocaleString()}
                       </span>
                     )}
                   </p>
                 </>
               )}
+
               {/* Additional UI components */}
               {publicview === true ? (
                 <></>
