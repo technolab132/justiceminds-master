@@ -43,7 +43,7 @@ const Home = () => {
   // this is step1 for creating new tab
   const [messages, setMessages] = useState([]);
   const [activeTab, setActiveTab] = useState();
-  const [isLoading, setisLoading] = useState(true);
+  const [isLoading, setisLoading] = useState();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [masterData, setMasterData] = useState([]);
   const [activeNameId, setActiveNameId] = useState(null);
@@ -250,7 +250,6 @@ const Home = () => {
       if (Sentresponse.ok) {
         //console.log('sent emails',emails);
         setSentEmails(SentEmails);
-        setisLoading(false);
       } else {
         setError(data.error);
       }
@@ -267,7 +266,6 @@ const Home = () => {
         setReceivedEmails(receivedEmails);
         // setIncident(IncidentData);
         // setMessages(Messages)
-        setisLoading(false);
       } else {
         setError(data.error);
       }
@@ -280,7 +278,6 @@ const Home = () => {
       if (sentCountResponse.ok) {
         //console.log('sent emails',emails);
         setSentEmailCount(sentData.count);
-        setisLoading(false);
       } else {
         setError(data.error);
       }
@@ -290,7 +287,6 @@ const Home = () => {
       if (receivedCountResponse.ok) {
         //console.log('sent emails',emails);
         setReceivedEmailCount(receivedData.count);
-        setisLoading(false);
       } else {
         setError(data.error);
       }
@@ -300,9 +296,22 @@ const Home = () => {
         setActiveTab('received');
       }
 
+      // const { data: Messages, error: messageError } = await supabase
+      //   .from('Chats')
+      //   .select('*')
+      //   .eq('Chat Session', selectedRow?.Name);
+
+      // if (messageError) {
+      //   console.error("messageerror", messageError);
+      // } else {
+      //   setMessages(Messages);
+      // }
+
     } catch (err) {
       console.error('Error fetching emails:', err);
       setError(err.message);
+    } finally {
+      setisLoading(false);
     }
 
     // const { data: SentEmails, error: semailError } = await supabase
@@ -316,11 +325,7 @@ const Home = () => {
     //   .select("*")
     //   .eq("FROM", selectedRow.Email); // Assuming 'Email' is the column name that links data between the tables
     //   // step 2 to crete tab on dashboard and get messages or data from supabase 
-    const { data: Messages, error: messageError } = await supabase
-      .from('Chats')
-      .select('*')
-      .eq('Chat Session', selectedRow?.Name); // Assuming 'Email' is the column name that links data between the tables
-      console.log(Messages);
+    
     // const { data: IncidentData, error: incidenterror } = await supabase
     //   .from("Complaints")
     //   .select("*")
@@ -338,16 +343,16 @@ const Home = () => {
     //   console.error("incidenterror", incidenterror);
     //   return;
     // }
-    if (messageError) {
-      console.error("messageerror", messageError);
-      return;
-    }
+    // if (messageError) {
+    //   console.error("messageerror", messageError);
+    //   return;
+    // }
 
     // setSentEmails(SentEmails);
     // setReceivedEmails(ReceivedEmails);
     // setIncident(IncidentData);
-    setMessages(Messages)
-    setisLoading(false);
+    // setMessages(Messages)
+    // setisLoading(false);
 
     // console.log(sentEmails);
   };
@@ -601,7 +606,12 @@ const Home = () => {
                 <ResizableHandle withHandle className="ress" />
                 <ResizablePanel className="flex-grow overflow-y-auto" defaultSize={80}>
                   {/* Details Panel content */}
-                  {selectedName ? (
+                  {isLoading ? (
+                    <div className="loader-container">
+                      <div className="loader" style={{height:'100px',width: '100px'}}></div>
+                    </div>
+                    
+                  ) : selectedName ? (
                     <DetailPanel
                       selectedData={selectedName}
                       sentEmails={sentEmails}
@@ -622,9 +632,9 @@ const Home = () => {
                       activeTabs={activeTab}
                     />
                   ) : (
-                    <>
-                    </>
-                    // Optionally add default content here if needed
+                    <div className="default-image-container">
+                     <img src="/logomain.png" className="mt-2" alt="image" width="600px" />
+                    </div>
                   )}
                 </ResizablePanel>
               </ResizablePanelGroup>
