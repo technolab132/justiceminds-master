@@ -2,10 +2,10 @@ import Home from "./dashboard";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "../utils/supabaseClient";
+// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 const IndividualPage = () => {
   const router = useRouter();

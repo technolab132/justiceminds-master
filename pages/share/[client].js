@@ -433,7 +433,7 @@ const IndividualCLient = () => {
               loadingtext={loadingtext}
               currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
               incident={incident}
-              publicview={false}
+              publicview={true}
             />
           ) : (
             <LoadingComponent />

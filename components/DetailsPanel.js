@@ -108,6 +108,12 @@ const DetailPanel = ({
       fetchData();
       setisLoading(false);
     }
+    setComplaintLink(
+      `https://incidents.justice-minds.com/${selectedData?.Name?.replace(
+        " ",
+        "%20"
+      )}`
+    );
     setisLoading(false);
   }, [selectedData["Email"]]);
   
@@ -1357,110 +1363,6 @@ const DetailPanel = ({
                 </ul>
               )}
 
-              {/* {activeTab === "innerlinks" && (
-                <ul className="">
-                  <>
-                    <table className="text-sm">
-                      <tr className="text-black dark:text-white">
-                        <td className="p-2 border-1 font-semibold dark:border-[#393939] border-[#aaaaaa]">Date</td>
-                        <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Subject Link</td>
-                        <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Inner Link</td>
-                      </tr>
-                      {sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
-                        <>
-                          <p className="p-2 text-green-500">Sent</p>
-                          {sentEmails.map((email, index) => {
-                            const headers = email.payload.headers;
-                            const dateHeader = headers.find(header => header.name === 'Date');
-                            const subjectHeader = headers.find(header => header.name === 'Subject');
-                            const emailId = email.id;
-                            const { textBody } = getBodyData(email.payload);
-                            const bodyData = sentBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
-                            const innerLinks = extractUrlsFromText(bodyData);
-                            const shortenUrl = (url) => {
-                              try {
-                                const urlObj = new URL(url);
-                                return urlObj.hostname;
-                              } catch (error) {
-                                console.error('Invalid URL:', url, error);
-                                return url; // Fallback to original URL if invalid
-                              }
-                            };
-                            if (innerLinks.length > 0) {
-                              return (
-                                <tr key={emailId} className="">
-                                  <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                                    {new Date(dateHeader.value).toLocaleString()}
-                                  </td>
-                                  <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white">
-                                    {subjectHeader.value}
-                                  </td>
-                                  <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white">
-                                    <ul>
-                                      {innerLinks.map((link, linkIndex) => (
-                                        <li key={`${emailId}-${linkIndex}`}>
-                                          <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </td>
-                                </tr>
-                              );
-                            }
-                            return null;
-                          })}
-                        </>
-                      )}
-                      {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
-                        <>
-                          <p className="p-3 text-green-500">Received</p>
-                          {receivedEmails.map((email, index) => {
-                            const headers = email.payload.headers;
-                            const dateHeader = headers.find(header => header.name === 'Date');
-                            const subjectHeader = headers.find(header => header.name === 'Subject');
-                            const emailId = email.id;
-                            const { textBody } = getBodyData(email.payload);
-                            const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
-                            const innerLinks = extractUrlsFromText(bodyData);
-                            const shortenUrl = (url) => {
-                              try {
-                                const urlObj = new URL(url);
-                                return urlObj.hostname;
-                              } catch (error) {
-                                console.error('Invalid URL:', url, error);
-                                return url; // Fallback to original URL if invalid
-                              }
-                            };
-                            if (innerLinks.length > 0) {
-                              return (
-                                <tr key={emailId} className="">
-                                  <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                                    {new Date(dateHeader.value).toLocaleString()}
-                                  </td>
-                                  <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white">
-                                    {subjectHeader.value}
-                                  </td>
-                                  <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white">
-                                    <ul>
-                                      {innerLinks.map((link, linkIndex) => (
-                                        <li key={`${emailId}-${linkIndex}`}>
-                                          <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </td>
-                                </tr>
-                              );
-                            }
-                            return null;
-                          })}
-                        </>
-                      )}
-                    </table>
-                    <br />
-                  </>
-                </ul>
-              )} */}
               {activeTab === "innerlinks" && (
                 <ul className="">
                   <>
