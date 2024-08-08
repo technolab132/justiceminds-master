@@ -1266,235 +1266,271 @@ const DetailPanel = ({
               {activeTab === "pdflinks" && (
                 <ul className="">
                   <>
-                    <table className="text-sm">
-                      <tr className="text-black dark:text-white">
-                        <td className="p-2 border-1 font-semibold dark:border-[#393939] border-[#aaaaaa]">Date</td>
-                        <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Pdf Link</td>
-                      </tr>
-                      {sentEmails.some(email => email.payload?.parts?.find(part => part.mimeType === 'application/pdf')) && (
-                        <>
-                          <p className="p-2 text-green-500">Sent</p>
-                          {sentEmails.map((email, index) => {
-                            const headers = email.payload.headers;
-                            const dateHeader = headers.find(header => header.name === 'Date');
-                            const subjectHeader = headers.find(header => header.name === 'Subject');
-                            const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
-                            const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                            const emailId = email.id;
+                    {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 && (
+                      <>
+                        <p className="p-2 text-green-500">Sent</p>
+                        {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).map((email, index) => {
+                          const headers = email.payload.headers;
+                          const dateHeader = headers.find(header => header.name === 'Date');
+                          const subjectHeader = headers.find(header => header.name === 'Subject');
+                          const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                          const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                          const emailId = email.id;
+                          if (pdfAttachmentId) {
+                            return (
+                              <Accordion key={index} type={"single"} collapsible className="w-full">
+                                <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
+                                  <div className="flex justify-between gap-2">
+                                    <table className="">
+                                      <tbody>
+                                        <tr className="text-sm">
+                                          <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                            {new Date(dateHeader.value).toLocaleString()}
+                                          </td>
+                                          <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                            {subjectHeader.value}
+                                          </td>
+                                          
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                    <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
+                                  </div>
+                                  <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
+                                    <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                      <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                        {email.payload.parts.filter(part => part.mimeType === 'application/pdf').map((pdfPart, pdfIndex) => {
+                                          const pdfAttachmentId = pdfPart.body.attachmentId;
+                                          const handleViewPdf = async () => {
+                                            if (pdfAttachmentId) {
+                                              try {
+                                                const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                                                const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                                                openPdfViewer(pdfData);
+                                              } catch (error) {
+                                                console.error('Error fetching or decoding PDF:', error);
+                                              }
+                                            }
+                                          };
 
-                            const handleViewPdf = async () => {
-                              if (pdfAttachmentId) {
-                                try {
-                                  const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                                  const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                                  openPdfViewer(pdfData);
-                                } catch (error) {
-                                  console.error('Error fetching or decoding PDF:', error);
-                                }
-                              }
-                            };
+                                          return (
+                                            <div key={`${emailId}-${pdfIndex}`} style={{ marginBottom: '10px' }}>
+                                              <button onClick={handleViewPdf} className="underline">{pdfPart.filename}</button>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </li>
+                                    <br />
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                            );
+                          }
+                          return null;
+                        })}
+                      </>
+                    )}
+                    {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 && (
+                      <>
+                        <p className="p-3 text-green-500">Received</p>
+                        {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).map((email, index) => {
+                          const headers = email.payload.headers;
+                          const dateHeader = headers.find(header => header.name === 'Date');
+                          const subjectHeader = headers.find(header => header.name === 'Subject');
+                          const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                          const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                          const emailId = email.id;
 
-                            if (pdfAttachmentId) {
-                              return (
-                                <tr key={`${emailId}-${index}`} className="">
-                                  <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                                    {new Date(dateHeader.value).toLocaleString()}
-                                  </td>
-                                  <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
-                                    {pdfAttachmentId && (
-                                      <button onClick={handleViewPdf}>
-                                        {subjectHeader.value}
-                                      </button>
-                                    )}
-                                  </td>
-                                </tr>
-                              );
-                            }
-                            return null;
-                          })}
-                        </>
-                      )}
-                      {receivedEmails.some(email => email.payload?.parts?.find(part => part.mimeType === 'application/pdf')) && (
-                        <>
-                          <p className="p-3 text-green-500">Received</p>
-                          {receivedEmails.map((email, index) => {
-                            const headers = email.payload.headers;
-                            const dateHeader = headers.find(header => header.name === 'Date');
-                            const subjectHeader = headers.find(header => header.name === 'Subject');
-                            const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
-                            const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                            const emailId = email.id;
 
-                            const handleViewPdf = async () => {
-                              if (pdfAttachmentId) {
-                                try {
-                                  const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                                  const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                                  openPdfViewer(pdfData);
-                                } catch (error) {
-                                  console.error('Error fetching or decoding PDF:', error);
-                                }
-                              }
-                            };
+                          if (pdfAttachmentId) {
+                            return (
+                              <Accordion key={index} type={"single"} collapsible className="w-full">
+                                <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
+                                  <div className="flex justify-between gap-2">
+                                    <table className="">
+                                      <tbody>
+                                        <tr className="text-sm">
+                                          <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                            {new Date(dateHeader.value).toLocaleString()}
+                                          </td>
+                                          <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                            {subjectHeader.value}
+                                          </td>
+                                          
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                    <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
+                                  </div>
+                                  <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
+                                    <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                      <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                        {email.payload.parts.filter(part => part.mimeType === 'application/pdf').map((pdfPart, pdfIndex) => {
+                                          const pdfAttachmentId = pdfPart.body.attachmentId;
+                                          const handleViewPdf = async () => {
+                                            if (pdfAttachmentId) {
+                                              try {
+                                                const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                                                const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                                                openPdfViewer(pdfData);
+                                              } catch (error) {
+                                                console.error('Error fetching or decoding PDF:', error);
+                                              }
+                                            }
+                                          };
 
-                            if (pdfAttachmentId) {
-                              return (
-                                <tr key={`${emailId}-${index}`} className="">
-                                  <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                                    {new Date(dateHeader.value).toLocaleString()}
-                                  </td>
-                                  <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
-                                    {pdfAttachmentId && (
-                                      <button onClick={handleViewPdf}>
-                                        {subjectHeader.value}
-                                      </button>
-                                    )}
-                                  </td>
-                                </tr>
-                              );
-                            }
-                            return null;
-                          })}
-                        </>
-                      )}
-                    </table>
-                    <br />
+                                          return (
+                                            <div key={`${emailId}-${pdfIndex}`} style={{ marginBottom: '10px' }}>
+                                              <button onClick={handleViewPdf} className="underline">{pdfPart.filename}</button>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </li>
+                                    <br />
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                            );
+                          }
+                          return null;
+                        })}
+                      </>
+                    )}
                   </>
                 </ul>
               )}
 
+
               {activeTab === "innerlinks" && (
                 <ul className="">
                   <>
-                    <table className="text-sm w-full">
-                      <thead>
-                        <tr className="text-black dark:text-white">
-                          <th className="p-1 border-1 font-semibold dark:border-[#393939] border-[#aaaaaa]">Date</th>
-                          <th className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Subject</th>
-                          <th className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Inner Link</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
-                          <>
-                            <p className="p-2 text-green-500">Sent</p>
-                            {sentEmails.map((email, index) => {
-                              const headers = email.payload.headers;
-                              const dateHeader = headers.find(header => header.name === 'Date');
-                              const subjectHeader = headers.find(header => header.name === 'Subject');
-                              const emailId = email.id;
-                              const { textBody } = getBodyData(email.payload);
-                              const bodyData = sentBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
-                              const innerLinks = extractUrlsFromText(bodyData);
-                              const shortenUrl = (url) => {
-                                try {
-                                  const urlObj = new URL(url);
-                                  return urlObj.hostname;
-                                } catch (error) {
-                                  console.error('Invalid URL:', url, error);
-                                  return url; // Fallback to original URL if invalid
-                                }
-                              };
+                    {sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
+                      <>
+                        <p className="p-2 text-green-500">Sent</p>
+                        {sentEmails.filter(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0).map((email, index) => {
+                          const headers = email.payload.headers;
+                          const dateHeader = headers.find(header => header.name === 'Date');
+                          const subjectHeader = headers.find(header => header.name === 'Subject');
+                          const emailId = email.id;
+                          const { textBody } = getBodyData(email.payload);
+                          const bodyData = sentBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                          const innerLinks = extractUrlsFromText(bodyData);
+                          console.log(extractUrlsFromText(getBodyData(email.payload).textBody).length > 0);
+                          const shortenUrl = (url) => {
+                            try {
+                              const urlObj = new URL(url);
+                              return urlObj.hostname;
+                            } catch (error) {
+                              console.error('Invalid URL:', url, error);
+                              return url; // Fallback to original URL if invalid
+                            }
+                          };
 
-                              return (
-                                <>
-                                  <tr key={emailId} className="text-sm">
-                                    <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      {new Date(dateHeader.value).toLocaleString()}
-                                    </td>
-                                    <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      {subjectHeader.value}
-                                    </td>
-                                    <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      <button
-                                        className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"
-                                        onClick={() => toggleAccordion(emailId)}
-                                      >
-                                        {isOpenAccordion === emailId ? 'Hide Links' : 'View Links'}
-                                      </button>
-                                    </td>
-                                  </tr>
-                                  {isOpenAccordion === emailId && (
-                                    <tr>
-                                      <td colSpan="3" className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                        <div className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
-                                          <ul className="rounded-md dark:bg-[#111111] bg-dark text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
-                                            {innerLinks.map((link, linkIndex) => (
-                                              <li key={`${emailId}-${linkIndex}`}>
-                                                <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </>
-                              );
-                            })}
-                          </>
-                        )}
-                        {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
-                          <>
-                            <p className="p-3 text-green-500">Received</p>
-                            {receivedEmails.map((email, index) => {
-                              const headers = email.payload.headers;
-                              const dateHeader = headers.find(header => header.name === 'Date');
-                              const subjectHeader = headers.find(header => header.name === 'Subject');
-                              const emailId = email.id;
-                              const { textBody } = getBodyData(email.payload);
-                              const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
-                              const innerLinks = extractUrlsFromText(bodyData);
-                              const shortenUrl = (url) => {
-                                try {
-                                  const urlObj = new URL(url);
-                                  return urlObj.hostname;
-                                } catch (error) {
-                                  console.error('Invalid URL:', url, error);
-                                  return url; // Fallback to original URL if invalid
-                                }
-                              };
+                          return (
+                            <Accordion key={index} type={"single"} collapsible className="w-full">
+                              <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
+                                <div className="flex justify-between gap-2">
+                                  <table className="">
+                                    <tbody>
+                                      <tr className="text-sm">
+                                        <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                          {new Date(dateHeader.value).toLocaleString()}
+                                        </td>
+                                        <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                          {subjectHeader.value}
+                                        </td>
+                                        
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
+                                </div>
+                                <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
+                                  <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                    
+                                    
+                                    <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                      {innerLinks.map((link, linkIndex) => (
+                                        <li key={`${emailId}-${linkIndex}`}>
+                                          <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
+                                        </li>
+                                      ))}
+                                      
+                                    </div>
+                                    
+                                    <br />
+                                  </li>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          );
+                        })}
+                      </>
+                    )}
+                    {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
+                      <>
+                        <p className="p-3 text-green-500">Received</p>
+                        {receivedEmails.filter(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0).map((email, index) => {
+                          const headers = email.payload.headers;
+                          const dateHeader = headers.find(header => header.name === 'Date');
+                          const subjectHeader = headers.find(header => header.name === 'Subject');
+                          const emailId = email.id;
+                          const { textBody } = getBodyData(email.payload);
+                          const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                          const innerLinks = extractUrlsFromText(bodyData);
+                          const shortenUrl = (url) => {
+                            try {
+                              const urlObj = new URL(url);
+                              return urlObj.hostname;
+                            } catch (error) {
+                              console.error('Invalid URL:', url, error);
+                              return url; // Fallback to original URL if invalid
+                            }
+                          };
 
-                              return (
-                                <>
-                                  <tr key={emailId} className="text-sm">
-                                    <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      {new Date(dateHeader.value).toLocaleString()}
-                                    </td>
-                                    <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      {subjectHeader.value}
-                                    </td>
-                                    <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      <button
-                                        className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"
-                                        onClick={() => toggleAccordion(emailId)}
-                                      >
-                                        {isOpenAccordion === emailId ? 'Hide Links' : 'View Links'}
-                                      </button>
-                                    </td>
-                                  </tr>
-                                  {isOpenAccordion === emailId && (
-                                    <tr>
-                                      <td colSpan="3" className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                        <div className="p-2 mt-2 dark:bg-[#121212] rounded-lg">
-                                          <ul className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
-                                            {innerLinks.map((link, linkIndex) => (
-                                              <li key={`${emailId}-${linkIndex}`}>
-                                                <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </>
-                              );
-                            })}
-                          </>
-                        )}
-                      </tbody>
-                    </table>
+                          return (
+                            <Accordion key={index} type={"single"} collapsible className="w-full">
+                              <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
+                                <div className="flex justify-between gap-2">
+                                  <table className="">
+                                    <tbody>
+                                      <tr className="text-sm">
+                                        <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                          {new Date(dateHeader.value).toLocaleString()}
+                                        </td>
+                                        <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                          {subjectHeader.value}
+                                        </td>
+                                        
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
+                                </div>
+                                <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
+                                  <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                    
+                                    
+                                    <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                      {innerLinks.map((link, linkIndex) => (
+                                        <li key={`${emailId}-${linkIndex}`}>
+                                          <a href={link} target="_blank" rel="noopener noreferrer" className="underline">{shortenUrl(link)}</a>
+                                        </li>
+                                      ))}
+                                      
+                                    </div>
+                                    
+                                    <br />
+                                  </li>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          );
+                        })}
+                      </>
+                    )}
                     <br />
                   </>
                 </ul>
