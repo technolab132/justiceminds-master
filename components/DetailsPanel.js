@@ -701,84 +701,6 @@ const DetailPanel = ({
             </>
           )}
         </div>
-        {/* {sentEmails ? (
-          <>
-            <p className="text-black dark:text-white">
-              <span className="dark:text-[#d5d5d5] text-[#828282]">Email Sent</span> :
-              {loading ? (
-                <span> Fetching . . . </span>
-              ) : (
-                <span> {sentEmails?.length}</span>
-              )}
-            </p>
-
-            <p className="text-black dark:text-white">
-              <span className="dark:text-[#d5d5d5] text-[#828282]">Email Received</span> :
-              {loading ? (
-                <span> Fetching . . . </span>
-              ) : (
-                <span> {receivedEmails?.length}</span>
-              )}
-            </p>
-            <p className="text-black dark:text-white">
-              <span className="dark:text-[#d5d5d5] text-[#828282]">Total Email</span> :
-              {loading ? (
-                <span> Fetching . . . </span>
-              ) : (
-                <span> {sentEmails?.length + receivedEmails?.length}</span>
-              )}
-            </p>
-            
-            {sentEmails.length > 0 && (
-              <>
-                <p className="text-black dark:text-white">
-                  <span className="dark:text-[#d5d5d5] text-[#828282]">Date of First Email Sent</span>:
-                  {loading ? (
-                    <span> Fetching . . . </span>
-                  ) : (
-                    <span className="">
-                      {new Date(sentEmails[sentEmails.length - 1]?.payload.headers[1].value).toLocaleString()}
-                    </span>
-                  )}
-                </p>
-                <p className="text-black dark:text-white">
-                  <span className="dark:text-[#d5d5d5] text-[#828282]">Date of Last Email Sent</span>:
-                  {loading ? (
-                    <span> Fetching . . . </span>
-                  ) : (
-                    <span>
-                      {new Date(sentEmails[0]?.payload.headers[1].value).toLocaleString()}
-                    </span>
-                  )}
-                </p>
-              </>
-            )}
-            {publicview === true ? (
-              <></>
-            ) : (
-              <>
-                <div className="flex items-center pt-10">
-                  <button
-                    className="dark:text-white text-black px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9] rounded-md"
-                    onClick={handleCopy}
-                  >
-                    Copy Incident Link
-                  </button>
-                  <span className="text-green-600 px-2">
-                    {isCopied && <p>✅ Link copied to clipboard!</p>}
-                  </span>
-                </div>
-                <a href={complaintLink} className="text-gray-600">
-                  {complaintLink}
-                </a>
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            <span>Loading data . . </span>
-          </>
-        )} */}
       </div>
 
       {loading ? (
@@ -1239,110 +1161,6 @@ const DetailPanel = ({
 
                 </ul>
               )}
-              {/* {activeTab === "pdflinks" && (
-                <ul className="">
-                  <>
-                    <table className="text-sm">
-                      <tr className="text-black dark:text-white">
-                        <td className="p-2 border-1 font-semibold dark:border-[#393939] border-[#aaaaaa]">Date</td>
-                        <td className="p-2 font-semibold dark:border-[#393939] border-[#aaaaaa]">Pdf Link</td>
-                      </tr>
-                      <p className="p-2 text-green-500">Sent</p>
-                      {sentEmails.map((email, index) => {
-                        const headers = email.payload.headers;
-                        const fromHeader = headers.find(header => header.name === 'From');
-                        const toHeader = headers.find(header => header.name === 'To');
-                        const subjectHeader = headers.find(header => header.name === 'Subject');
-                        const dateHeader = headers.find(header => header.name === 'Date');
-                        const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
-                        const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                        const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
-                        const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                        const emailId = headers.find(header => header.name === 'Message-ID')?.value;
-                        console.log('emailid',emailId);
-                        const handleViewPdf = async () => {
-                          if (pdfAttachmentId) {
-                            try {
-                              const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                              const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                              openPdfViewer(pdfData);
-                            } catch (error) {
-                              console.error('Error fetching or decoding PDF:', error);
-                              // Handle error appropriately, e.g., show error message to user
-                            }
-                          }
-                        };
-                        if(pdfAttachmentId){
-                          return(
-                          <>
-                            <tr key={index} className="">
-                              <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                                {new Date(dateHeader.value).toLocaleString()}
-                              </td>
-                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
-                                {pdfAttachmentId && (
-                                        <button onClick={handleViewPdf}>
-                                          {subjectHeader.value}
-                                        </button>
-                                      )}
-                              </td>
-                            </tr>
-                          </>
-                          )
-                        }
-                        return null;
-                    })}
-                      <p className="p-3 text-green-500">Received</p>
-                      {receivedEmails.map((email, index) => {
-                        const headers = email.payload.headers;
-                        const fromHeader = headers.find(header => header.name === 'From');
-                        const toHeader = headers.find(header => header.name === 'To');
-                        const subjectHeader = headers.find(header => header.name === 'Subject');
-                        const dateHeader = headers.find(header => header.name === 'Date');
-                        const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
-                        const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                        const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
-                        const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                        const emailId = headers.find(header => header.name === 'Message-ID')?.value;
-                        console.log('emailid',emailId);
-                        const handleViewPdf = async () => {
-                          if (pdfAttachmentId) {
-                            try {
-                              const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                              const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                              openPdfViewer(pdfData);
-                            } catch (error) {
-                              console.error('Error fetching or decoding PDF:', error);
-                              // Handle error appropriately, e.g., show error message to user
-                            }
-                          }
-                        };
-                        if(pdfAttachmentId){
-                          return(
-                          <>
-                            <tr key={index} className="">
-                              <td className="p-2 dark:text-gray-400 text-black dark:border-[#393939] border-[#aaaaaa]">
-                                {new Date(dateHeader.value).toLocaleString()}
-                              </td>
-                              <td className="p-2 dark:border-[#393939] border-[#aaaaaa] text-black dark:text-white"> 
-                                {pdfAttachmentId && (
-                                        <button onClick={handleViewPdf}>
-                                          {subjectHeader.value}
-                                        </button>
-                                      )}
-                              </td>
-                            </tr>
-                          </>
-                          )
-                        }
-                        return null;
-                    })}
-                    </table>
-
-                    <br />
-                  </>
-                </ul>
-              )} */}
               {activeTab === "pdflinks" && (
                 <ul className="">
                   <>
@@ -1616,9 +1434,6 @@ const DetailPanel = ({
                 </ul>
               )}
 
-
-
-
               {activeTab === "messages" && (
                 <div className="">
                   {messages?.map((message, index) => (
@@ -1708,115 +1523,128 @@ const DetailPanel = ({
               {activeTab === "embed" && (
                 <>
                   {publicview === false && (
-                    <>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <button
+                          className={`px-8 py-2 rounded-md ${
+                            !toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
+                          } text-gray-200`}
+                          onClick={() => setToggleEmbed(false)}
+                        >
+                          Embed Link
+                        </button>
+                        <button
+                          className={`px-8 py-2 rounded-md ${
+                            toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
+                          } text-gray-200`}
+                          onClick={() => setToggleEmbed(true)}
+                        >
+                          Embed Content
+                        </button>
+                      </div>
                       <button
-                        className={`px-8 py-2 rounded-md ${
-                          !toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
-                        } text-gray-200`}
-                        onClick={() => setToggleEmbed(false)}
+                        className={`px-8 py-2 rounded-md dark:bg-[#1d1d1d] ${
+                          masterembedlink?.length <= 0 ? "bg-gray-300 text-white cursor-not-allowed" : "bg-[#f1c40f] text-white"
+                        } ml-4`}
+                        onClick={() => {
+                          if (masterembedlink?.length > 0) {
+                            window.location.href = `/${selectedData["Email"]}`;
+                          }
+                        }}
+                        disabled={masterembedlink?.length <= 0}
                       >
-                        Embed Link
+                        Share
                       </button>
-                      <button
-                        className={`px-8 py-2 rounded-md ${
-                          toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
-                        } text-gray-200`}
-                        onClick={() => setToggleEmbed(true)}
-                      >
-                        Embed Content
-                      </button>{" "}
-                      {isLoading ? (
-                        <p>Loading . . </p>
-                      ) : (
-                        <>
-                          <div className="embedlinks py-5">
-                            {toggleEmbed ? (
-                              <>
-                                <h2 className="text-lg font-bold text-white pb-5">
-                                  Embed Content
-                                </h2>
-                                <JoditEditor
-                                  ref={editor}
-                                  value={embedLink}
-                                  config={{
-                                    autofocus: false,
-                                    readonly: false,
-                                    theme: "dark",
-                                    statusbar: false,
-                                  }}
-                                  onBlur={handleComplaintChangeDebounced}
-                                />
-                                <input
-                                  className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
-                                  disabled
-                                  type="text"
-                                  name="name"
-                                  value={selectedData["Name"]}
-                                />
-                                {embedLink == "" ? (
-                                  <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] text-black cursor-not-allowed ">
-                                    Add Link
-                                  </button>
-                                ) : (
-                                  <button
-                                    className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] text-black"
-                                    onClick={handleEmbedLinkAdd}
-                                  >
-                                    Add Link
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                <h2 className="text-lg font-bold dark:text-white text-black pb-5">
-                                  Embed Link
-                                </h2>
-                                <input
-                                  className="text-white rounded-md bg-[#1d1d1d] my-2 p-2 mr-4"
-                                  type="text"
-                                  name="link"
-                                  value={embedLink2}
-                                  placeholder="Enter the Embed Link"
-                                  required
-                                  onChange={(e) =>
-                                    setEmbedLink2(e.target.value)
-                                  }
-                                />{" "}
-                                <input
-                                  className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
-                                  disabled
-                                  type="text"
-                                  name="name"
-                                  value={selectedData["Name"]}
-                                />
-                                {embedLink2 == "" ? (
-                                  <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] text-black cursor-not-allowed ">
-                                    Add Link
-                                  </button>
-                                ) : (
-                                  <button
-                                    className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] text-black"
-                                    onClick={handleEmbedLinkAdd2}
-                                  >
-                                    Add Link
-                                  </button>
-                                )}
-                              </>
-                            )}
+                    </div>
+                  )}
 
-                          </div>
-                          <p>
-                            Total Embed Links :{" "}
-                            <strong className="text-white">
-                              {masterembedlink?.length}
-                            </strong>
-                          </p>
-                        </>
-                      )}
+                  {isLoading ? (
+                    <p>Loading . . </p>
+                  ) : (
+                    <>
+                      <div className="embedlinks py-5">
+                        {toggleEmbed ? (
+                          <>
+                            <h2 className="text-lg font-bold text-white pb-5">
+                              Embed Content
+                            </h2>
+                            <JoditEditor
+                              ref={editor}
+                              value={embedLink}
+                              config={{
+                                autofocus: false,
+                                readonly: false,
+                                theme: "dark",
+                                statusbar: false,
+                              }}
+                              onBlur={handleComplaintChangeDebounced}
+                            />
+                            <input
+                              className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
+                              disabled
+                              type="text"
+                              name="name"
+                              value={selectedData["Name"]}
+                            />
+                            {embedLink === "" ? (
+                              <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
+                                Add Link
+                              </button>
+                            ) : (
+                              <button
+                                className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
+                                onClick={handleEmbedLinkAdd}
+                              >
+                                Add Link
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <h2 className="text-lg font-bold dark:text-white text-black pb-5">
+                              Embed Link
+                            </h2>
+                            <input
+                              className="text-white rounded-md bg-[#1d1d1d] my-2 p-2 mr-4"
+                              type="text"
+                              name="link"
+                              value={embedLink2}
+                              placeholder="Enter the Embed Link"
+                              required
+                              onChange={(e) => setEmbedLink2(e.target.value)}
+                            />
+                            <input
+                              className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
+                              disabled
+                              type="text"
+                              name="name"
+                              value={selectedData["Name"]}
+                            />
+                            {embedLink2 === "" ? (
+                              <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
+                                Add Link
+                              </button>
+                            ) : (
+                              <button
+                                className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
+                                onClick={handleEmbedLinkAdd2}
+                              >
+                                Add Link
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <p>
+                        Total Embed Links :{" "}
+                        <strong className="text-white">
+                          {masterembedlink?.length}
+                        </strong>
+                      </p>
                     </>
                   )}
 
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <button
                       className=" px-8 py-2 rounded-md cursor-pointer dark:bg-[#1d1d1d] text-black bg-[#d6d6d6] mb-5"
                       onClick={handleCopyEmb}
@@ -1832,7 +1660,7 @@ const DetailPanel = ({
                     href={`/${selectedData["Email"]}`}
                   >
                     Go to Individual Page
-                  </a>
+                  </a> */}
                   <br />
                   <br />
                   {masterembedlink?.length > 0 && (
