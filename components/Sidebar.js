@@ -1,7 +1,8 @@
 import React from 'react';
+import { SkeletonButton, SkeletonTextField, SkeletonParagraph, SkeletonDateField } from './Skeletons'; // Ensure this path is correct
+
 
 const Sidebar = ({ data, activeNameId, onSelectName, loading, hasMore, lastEmailRef }) => {
-  console.log('data',data);
   return (
     <div
       style={{
@@ -15,43 +16,41 @@ const Sidebar = ({ data, activeNameId, onSelectName, loading, hasMore, lastEmail
       }}
       className="sidebar-container"
     >
-      {data.map((item, index) => (
-        <button
-          className={`dark:hover:bg-[#1c1c1c] hover:bg-[#e6e6e6] ${
-            activeNameId?.email === item?.email
-              ? "dark:bg-[#1c1c1c] bg-white"
-              : "dark:bg-[#000000] bg-white text-gray-400"
-          }`}
-          key={index}
-          style={{
-            padding: "12px 16px",
-            width: "100%",
-            marginBottom: "6px",
-            textAlign: "left",
-            wordBreak: "break-word",
-            borderRadius: "5px",
-            fontSize: "14px",
-          }}
-          onClick={() => onSelectName(item)}
-        >
-          <strong
-            style={{ wordBreak: "break-word" }}
-            className="dark:text-[#d5d5d5] text-[#454545] text-[17px] text-pretty"
+      {loading ? (
+        Array.from({ length: 7 }).map((_, index) => (
+          <SkeletonButton key={index} />
+        ))
+      ) : (
+        data.map((item, index) => (
+          <button
+            className={`dark:hover:bg-[#1c1c1c] hover:bg-[#e6e6e6] ${
+              activeNameId?.email === item?.email
+                ? "dark:bg-[#1c1c1c] bg-white"
+                : "dark:bg-[#000000] bg-white text-gray-400"
+            }`}
+            key={index}
+            style={{
+              padding: "12px 16px",
+              width: "100%",
+              marginBottom: "6px",
+              textAlign: "left",
+              wordBreak: "break-word",
+              borderRadius: "5px",
+              fontSize: "14px",
+            }}
+            onClick={() => onSelectName(item)}
           >
-            {item?.name}
-          </strong>
-          <br />
-          <p style={{ wordBreak: "break-word" }} className="text-pretty text-gray-500">{item?.email}</p>
-        </button>
-      ))}
-      {loading && (
-        <div className="loader">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
+            <strong
+              style={{ wordBreak: "break-word" }}
+              className="dark:text-[#d5d5d5] text-[#454545] text-[17px] text-pretty"
+            >
+              {item?.name}
+            </strong>
+            <br />
+            <p style={{ wordBreak: "break-word" }} className="text-pretty text-gray-500">{item?.email}</p>
+          </button>
+        ))
       )}
-      {/* {!loading && !hasMore && <div className="end-of-list">No more emails to load.</div>} */}
       <div
         ref={lastEmailRef}
         style={{
@@ -60,7 +59,6 @@ const Sidebar = ({ data, activeNameId, onSelectName, loading, hasMore, lastEmail
         }}
       />
     </div>
-
   );
 };
 

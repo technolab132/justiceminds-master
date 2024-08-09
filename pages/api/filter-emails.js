@@ -15,9 +15,11 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No OAuth tokens found' });
     }
 
-    const senderEmail = req.query.sender; // Get the sender email from query parameters
+    const senderEmail = req.query.sender;
     const label = req.query?.label;
     const type = req.query.type;
+    const pageToken = req.query.pageToken; // Get the pageToken from query parameters
+
     if (!senderEmail) {
       return res.status(400).json({ error: 'Sender email is required' });
     }
@@ -33,24 +35,18 @@ export default async function handler(req, res) {
 
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-    // Build the query string
-    let query = ''
-    if(type == 'RECIEVE'){
+    let query = '';
+    if (type === 'RECIEVE' || type === 'received' || type === 'RECEIVED') {
       query = `from:${senderEmail}`;
-      // if (label) {
-      //   query += ` label:${label}`;
-      // }
-    }else if(type == 'SENT'){
+    } else if (type === 'SENT') {
       query = `to:${senderEmail}`;
-      // if (label) {
-      //   query += ` label:${label}`;
-      // }
     }
-    
-    // Fetch emails with the specific sender email
+
     const gmailResponse = await gmail.users.messages.list({
       userId: 'me',
       q: query,
+      pageToken: pageToken || undefined, // Set the pageToken if provided
+      maxResults: 400, // Number of emails per page
     });
 
     const messages = await Promise.all(
@@ -60,7 +56,11 @@ export default async function handler(req, res) {
       })
     );
 
-    res.status(200).json({ emails: messages });
+    // Return the emails and the nextPageToken if available
+    res.status(200).json({
+      emails: messages,
+      nextPageToken: gmailResponse.data.nextPageToken || null,
+    });
   } catch (error) {
     console.error('Error fetching emails:', error);
     res.status(500).json({ error: 'Internal Server Error' });

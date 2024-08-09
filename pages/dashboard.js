@@ -23,7 +23,7 @@ import LoginPage from "./auth/login";
 import { supabase } from '../utils/supabaseClient';
 import debounce from 'lodash.debounce'; // Make sure to install lodash.debounce if you don't have it
 import { AiOutlineSearch, AiOutlineClose } from 'react-icons/ai'; // Optional: Using React Icons for search and clear icons
-
+import { RxReset } from 'react-icons/rx';
 const Home = () => {
   const router = useRouter();
   const indi = router.params?.indi;
@@ -48,7 +48,11 @@ const Home = () => {
   const [masterData, setMasterData] = useState([]);
   const [activeNameId, setActiveNameId] = useState(null);
 
-
+  const [nextPageTokens, setNextPageTokens] = useState({
+    sent: null,
+    received: null,
+  });
+  
   // const [emails, setEmails] = useState([]);
   // const [nextPageToken, setNextPageToken] = useState(null);
 
@@ -208,156 +212,334 @@ const Home = () => {
   //   setIsLoggedIn(false);
   // };
 
-  const handleSelectName = async (data) => {
-    setExtractedTexts({});
-    // setEmails([])
-    // setNextPageToken("")
-    // const selectedRow = emails.find((row) => row.id === ID);
-    // // const selectedRowW = sheetdata3.find((row) => row[0] === name);
+  // const handleSelectName = async (data) => {
+  //   setExtractedTexts({});
+  //   // setEmails([])
+  //   // setNextPageToken("")
+  //   // const selectedRow = emails.find((row) => row.id === ID);
+  //   // // const selectedRowW = sheetdata3.find((row) => row[0] === name);
     
-    const selectedRow = data;
-    console.log(selectedRow)
-    // let name = "Unknown";
-    // let email = "Unknown";
-    // const headers = selectedRow.payload.headers;
-    // const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
-    // if (fromHeader) {
-    //   const fromParts = fromHeader.value.split('<');
-    //   console.log(fromParts);
-    //   name = fromParts[0].trim();
-    //   const fromParts1 = fromParts[1].split('>');
-    //   if(fromParts.length > 1){
-    //     email = fromParts1[0];
-    //   }
+  //   const selectedRow = data;
+  //   console.log(selectedRow)
+  //   // let name = "Unknown";
+  //   // let email = "Unknown";
+  //   // const headers = selectedRow.payload.headers;
+  //   // const fromHeader = headers.find(header => header.name.toLowerCase() === 'from');
+  //   // if (fromHeader) {
+  //   //   const fromParts = fromHeader.value.split('<');
+  //   //   console.log(fromParts);
+  //   //   name = fromParts[0].trim();
+  //   //   const fromParts1 = fromParts[1].split('>');
+  //   //   if(fromParts.length > 1){
+  //   //     email = fromParts1[0];
+  //   //   }
       
-    // }
+  //   // }
+  //   const selectedData = {
+  //     'Email': selectedRow.email,
+  //     'Name': selectedRow.name,
+
+  //   }
+  //   setSelectedName(selectedData);
+  //   setisLoading(true);
+  //   console.log(selectedName);
+  //   // console.log(selectedRow);
+  //   // setSelectedNameWW(selectedRowW);
+  //   // const { data, error } = supabase.from('EmailData').select('*').eq("email", )
+
+  //   try {
+  //     const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
+  //     const { emails: SentEmails, error} = await Sentresponse.json();
+
+  //     if (Sentresponse.ok) {
+  //       //console.log('sent emails',emails);
+  //       setSentEmails(SentEmails);
+  //     } else {
+  //       setError(data.error);
+  //     }
+
+  //     const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=INBOX&type=RECIEVE');
+  //     const { emails: receivedEmails, error: semailError } = await Receivedresponse.json();
+
+  //     if (Receivedresponse.ok) {
+  //       //setEmails(data.emails);
+  //      // SentEmails = data.emails;
+  //       // setSentEmails(SentEmails);
+  //      // console.log('sent emails',emails);
+  //       //setSentEmails(SentEmails);
+  //       setReceivedEmails(receivedEmails);
+  //       // setIncident(IncidentData);
+  //       // setMessages(Messages)
+  //     } else {
+  //       setError(data.error);
+  //     }
+      
+
+  //     // Fetch count of sent emails
+  //     const sentCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=SENT');
+  //     const sentData = await sentCountResponse.json();
+      
+  //     if (sentCountResponse.ok) {
+  //       //console.log('sent emails',emails);
+  //       setSentEmailCount(sentData.count);
+  //     } else {
+  //       setError(data.error);
+  //     }
+  //     // Fetch count of received emails
+  //     const receivedCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=RECIEVE');
+  //     const receivedData = await receivedCountResponse.json();
+  //     if (receivedCountResponse.ok) {
+  //       //console.log('sent emails',emails);
+  //       setReceivedEmailCount(receivedData.count);
+  //     } else {
+  //       setError(data.error);
+  //     }
+  //     if(SentEmails.length > 0){
+  //       setActiveTab('sent');
+  //     }else{
+  //       setActiveTab('received');
+  //     }
+
+  //     // const { data: Messages, error: messageError } = await supabase
+  //     //   .from('Chats')
+  //     //   .select('*')
+  //     //   .eq('Chat Session', selectedRow?.Name);
+
+  //     // if (messageError) {
+  //     //   console.error("messageerror", messageError);
+  //     // } else {
+  //     //   setMessages(Messages);
+  //     // }
+
+  //   } catch (err) {
+  //     console.error('Error fetching emails:', err);
+  //     setError(err.message);
+  //   } finally {
+  //     setisLoading(false);
+  //   }
+
+  //   // const { data: SentEmails, error: semailError } = await supabase
+  //   //   .from("newtabledata")
+  //   //   .select("*")
+  //   //   .eq("TO", selectedRow.Email);
+
+  //   // // Assuming 'Email' is the column name that links data between the tables
+  //   // const { data: ReceivedEmails, error: remailError } = await supabase
+  //   //   .from("newtabledata")
+  //   //   .select("*")
+  //   //   .eq("FROM", selectedRow.Email); // Assuming 'Email' is the column name that links data between the tables
+  //   //   // step 2 to crete tab on dashboard and get messages or data from supabase 
+    
+  //   // const { data: IncidentData, error: incidenterror } = await supabase
+  //   //   .from("Complaints")
+  //   //   .select("*")
+  //   //   .eq("complaint_for", selectedRow.Name);
+
+  //   // if (semailError) {
+  //   //   console.error("sentmaail", semailError);
+  //   //   return;
+  //   // }
+  //   // if (remailError) {
+  //   //   console.error("receivedmaail", remailError);
+  //   //   return;
+  //   // }
+  //   // if (incidenterror) {
+  //   //   console.error("incidenterror", incidenterror);
+  //   //   return;
+  //   // }
+  //   // if (messageError) {
+  //   //   console.error("messageerror", messageError);
+  //   //   return;
+  //   // }
+
+  //   // setSentEmails(SentEmails);
+  //   // setReceivedEmails(ReceivedEmails);
+  //   // setIncident(IncidentData);
+  //   // setMessages(Messages)
+  //   // setisLoading(false);
+
+  //   // console.log(sentEmails);
+  // };
+  // Initialize state for current page and total pages
+  const [currentPage, setCurrentPage] = useState({ sent: 1, received: 1 });
+  const [emailsPerPage] = useState(50); // Display 50 emails per page
+  
+  const handleSelectName = async (data) => {
+    const selectedRow = data;
     const selectedData = {
       'Email': selectedRow.email,
       'Name': selectedRow.name,
-
-    }
+    };
     setSelectedName(selectedData);
     setisLoading(true);
-    console.log(selectedName);
-    // console.log(selectedRow);
-    // setSelectedNameWW(selectedRowW);
-    // const { data, error } = supabase.from('EmailData').select('*').eq("email", )
-
+  
     try {
-      const Sentresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=SENT&type=SENT');
-      const { emails: SentEmails, error} = await Sentresponse.json();
-
+      // Fetch the first 1000 emails for both SENT and RECEIVED
+      const Sentresponse = await fetch('/api/filter-emails?sender=' + selectedRow.email + '&label=SENT&type=SENT&maxResults=1000');
+      const { emails: SentEmails, nextPageToken: sentNextPageToken } = await Sentresponse.json();
+  
       if (Sentresponse.ok) {
-        //console.log('sent emails',emails);
         setSentEmails(SentEmails);
       } else {
-        setError(data.error);
+        setError(SentEmails.error);
       }
-
-      const Receivedresponse = await fetch(' /api/filter-emails?sender='+ selectedRow.email+'&label=INBOX&type=RECIEVE');
-      const { emails: receivedEmails, error: semailError } = await Receivedresponse.json();
-
+  
+      const Receivedresponse = await fetch('/api/filter-emails?sender=' + selectedRow.email + '&label=INBOX&type=RECIEVE&maxResults=1000');
+      const { emails: receivedEmails, nextPageToken: receivedNextPageToken } = await Receivedresponse.json();
+  
       if (Receivedresponse.ok) {
-        //setEmails(data.emails);
-       // SentEmails = data.emails;
-        // setSentEmails(SentEmails);
-       // console.log('sent emails',emails);
-        //setSentEmails(SentEmails);
         setReceivedEmails(receivedEmails);
-        // setIncident(IncidentData);
-        // setMessages(Messages)
       } else {
-        setError(data.error);
+        setError(receivedEmails.error);
       }
-      
-
-      // Fetch count of sent emails
-      const sentCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=SENT');
+  
+      // Fetch count of sent and received emails
+      const sentCountResponse = await fetch('/api/fetch-email-count?sender=' + selectedRow.email + '&type=SENT');
       const sentData = await sentCountResponse.json();
-      
+  
       if (sentCountResponse.ok) {
-        //console.log('sent emails',emails);
         setSentEmailCount(sentData.count);
       } else {
-        setError(data.error);
+        setError(sentData.error);
       }
-      // Fetch count of received emails
-      const receivedCountResponse = await fetch('/api/fetch-email-count?sender='+ selectedRow.email+'&type=RECIEVE');
+  
+      const receivedCountResponse = await fetch('/api/fetch-email-count?sender=' + selectedRow.email + '&type=RECIEVE');
       const receivedData = await receivedCountResponse.json();
+  
       if (receivedCountResponse.ok) {
-        //console.log('sent emails',emails);
         setReceivedEmailCount(receivedData.count);
       } else {
-        setError(data.error);
+        setError(receivedData.error);
       }
-      if(SentEmails.length > 0){
+  
+      // Set the initial active tab based on available emails
+      if (SentEmails.length > 0) {
         setActiveTab('sent');
-      }else{
+      } else {
         setActiveTab('received');
       }
-
-      // const { data: Messages, error: messageError } = await supabase
-      //   .from('Chats')
-      //   .select('*')
-      //   .eq('Chat Session', selectedRow?.Name);
-
-      // if (messageError) {
-      //   console.error("messageerror", messageError);
-      // } else {
-      //   setMessages(Messages);
-      // }
-
+  
+      setNextPageTokens({
+        sent: sentNextPageToken,
+        received: receivedNextPageToken,
+      });
+  
     } catch (err) {
       console.error('Error fetching emails:', err);
       setError(err.message);
     } finally {
       setisLoading(false);
     }
-
-    // const { data: SentEmails, error: semailError } = await supabase
-    //   .from("newtabledata")
-    //   .select("*")
-    //   .eq("TO", selectedRow.Email);
-
-    // // Assuming 'Email' is the column name that links data between the tables
-    // const { data: ReceivedEmails, error: remailError } = await supabase
-    //   .from("newtabledata")
-    //   .select("*")
-    //   .eq("FROM", selectedRow.Email); // Assuming 'Email' is the column name that links data between the tables
-    //   // step 2 to crete tab on dashboard and get messages or data from supabase 
-    
-    // const { data: IncidentData, error: incidenterror } = await supabase
-    //   .from("Complaints")
-    //   .select("*")
-    //   .eq("complaint_for", selectedRow.Name);
-
-    // if (semailError) {
-    //   console.error("sentmaail", semailError);
-    //   return;
-    // }
-    // if (remailError) {
-    //   console.error("receivedmaail", remailError);
-    //   return;
-    // }
-    // if (incidenterror) {
-    //   console.error("incidenterror", incidenterror);
-    //   return;
-    // }
-    // if (messageError) {
-    //   console.error("messageerror", messageError);
-    //   return;
-    // }
-
-    // setSentEmails(SentEmails);
-    // setReceivedEmails(ReceivedEmails);
-    // setIncident(IncidentData);
-    // setMessages(Messages)
-    // setisLoading(false);
-
-    // console.log(sentEmails);
   };
+  
+  // const handlePageChange = (type, page) => {
+  //   const itemsPerPage = 50; // Number of emails per page
+  //   const startIndex = (page - 1) * itemsPerPage;
+  //   const endIndex = startIndex + itemsPerPage;
+  
+  //   if (type === 'SENT') {
+  //     const pageEmails = sentEmails.slice(startIndex, endIndex);
+  //     setSentEmails(pageEmails);
+  //   } else {
+  //     const pageEmails = receivedEmails.slice(startIndex, endIndex);
+  //     setReceivedEmails(pageEmails);
+  //   }
+  
+  //   // If the page exceeds the available emails, fetch more from the API
+  //   if (endIndex >= (type === 'SENT' ? sentEmails.length : receivedEmails.length)) {
+  //     fetchMoreEmails(type);
+  //   }
+  
+  //   setCurrentPage((prev) => ({ ...prev, [type.toLowerCase()]: page }));
+  // };
+  // const handlePageChange = (type, direction) => {
+  //   setCurrentPage((prev) => {
+  //     const newPage = direction === "next" ? prev[type] + 1 : prev[type] - 1;
+  //     return { ...prev, [type]: newPage };
+  //   });
+  // };
+  const paginatedSentEmails = sentEmails.slice(
+    (currentPage.sent - 1) * emailsPerPage,
+    currentPage.sent * emailsPerPage
+  );
+  
+  const paginatedReceivedEmails = receivedEmails.slice(
+    (currentPage.received - 1) * emailsPerPage,
+    currentPage.received * emailsPerPage
+  );
+  
+  // const fetchMoreEmails = async (type) => {
+  //   const nextPageToken = nextPageTokens[type.toLowerCase()];
+  //   if (!nextPageToken) return;
+  //   console.log(type);
+  //   try {
+  //     const response = await fetch(`/api/filter-emails?sender=${selectedName.Email}&type=${type}&pageToken=${nextPageToken}&maxResults=1000`);
+  //     const { emails, nextPageToken: newNextPageToken } = await response.json();
+  
+  //     if (response.ok) {
+  //       if (type === 'SENT') {
+  //         setSentEmails((prev) => [...prev, ...emails]);
+  //         setNextPageTokens((prev) => ({ ...prev, sent: newNextPageToken }));
+  //       } else {
+  //         setReceivedEmails((prev) => [...prev, ...emails]);
+  //         setNextPageTokens((prev) => ({ ...prev, received: newNextPageToken }));
+  //       }
+  //     } else {
+  //       setError(emails.error);
+  //     }
+  //   } catch (err) {
+  //     console.error('Error fetching more emails:', err);
+  //     setError(err.message);
+  //   }
+  // };
+  
+  
 
+  // Updated handlePageChange
+const handlePageChange = async (type, direction) => {
+  setCurrentPage((prev) => {
+    const newPage = direction === "next" ? prev[type] + 1 : prev[type] - 1;
+
+    // If moving to the next page and need more emails
+    if (direction === "next" && newPage * emailsPerPage > (type === 'sent' ? sentEmails.length : receivedEmails.length)) {
+      fetchMoreEmails(type.toUpperCase());
+    }
+
+    return { ...prev, [type]: newPage };
+  });
+};
+
+// Adjusted fetchMoreEmails
+const fetchMoreEmails = async (type) => {
+  const nextPageToken = nextPageTokens[type.toLowerCase()];
+  if (!nextPageToken) return;
+
+  try {
+    const response = await fetch(`/api/filter-emails?sender=${selectedName.Email}&type=${type}&pageToken=${nextPageToken}`);
+    const { emails, nextPageToken: newNextPageToken } = await response.json();
+
+    if (response.ok) {
+      if (type === 'SENT') {
+        setSentEmails((prev) => [...prev, ...emails]);
+        setNextPageTokens((prev) => ({ ...prev, sent: newNextPageToken }));
+      } else {
+        setReceivedEmails((prev) => [...prev, ...emails]);
+        setNextPageTokens((prev) => ({ ...prev, received: newNextPageToken }));
+      }
+    } else {
+      setError(emails.error);
+    }
+  } catch (err) {
+    console.error('Error fetching more emails:', err);
+    setError(err.message);
+  }
+};
+
+
+
+  
   // fetch email
+
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -538,7 +720,7 @@ const Home = () => {
         {/* {isLoggedIn ? ( */}
           <>
             <Navbar />
-            <div className="flex h-screen overflow-hidden pt-[60px] lg:pt-[80px] bg-white dark:bg-transparent">
+            <div className="flex h-screen overflow-hidden pt-[60px] lg:pt-[55px] bg-white dark:bg-transparent">
               {/* Sidebar Toggle Button */}
               {/* <button
               className="p-4 text-3xl absolute"
@@ -551,11 +733,11 @@ const Home = () => {
               {/* Sidebar */}
               
               <ResizablePanelGroup direction="horizontal" className="">
-                <ResizablePanel defaultSize={20.8} className="overflow-auto">
+                <ResizablePanel defaultSize={22} className="overflow-auto">
                   <div className={`w-[320px] ${showSidebar ? "" : "hidden"} h-full`}>
                     {showSidebar && (
                       <>
-                        <div style={{ display: 'flex', width: '100%', padding: '8px 25px 10px 5px', margin: '15px 0 15px' }}>
+                        <div style={{ display: 'flex', width: '100%', padding: '8px 5px 2px 5px', margin: '15px 0 15px' }}>
                           <input
                             type="text"
                             placeholder="Search by name"
@@ -586,7 +768,8 @@ const Home = () => {
                             }}
                             className="dark:bg-[#1c1c1c] bg-black text-white"
                           >
-                            <AiOutlineClose size={20} />
+                            <RxReset size={15}></RxReset>
+                            
                           </button>
                         </div>
                         {error && <p className="error">{error}</p>}
@@ -614,8 +797,8 @@ const Home = () => {
                   ) : selectedName ? (
                     <DetailPanel
                       selectedData={selectedName}
-                      sentEmails={sentEmails}
-                      receivedEmails={receivedEmails}
+                      sentEmails={paginatedSentEmails}
+                      receivedEmails={paginatedReceivedEmails}
                       sentEmailCount={sentEmailCount}
                       receivedEmailCount={receivedEmailCount}
                       onClose={handleCloseDetailPanel}
@@ -630,6 +813,14 @@ const Home = () => {
                       incident={incident}
                       publicview={false}
                       activeTabs={activeTab}
+                      nextPageTokens={nextPageTokens}
+                      onPageChange={handlePageChange}
+                      currentPage={currentPage}
+                      emailsPerPage={emailsPerPage}
+                      totalPages={{
+                        sent: Math.ceil(sentEmailCount / emailsPerPage),
+                        received: Math.ceil(receivedEmailCount / emailsPerPage),
+                      }}
                     />
                   ) : (
                     <div className="default-image-container">

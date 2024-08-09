@@ -152,7 +152,7 @@ a {
 
 body {
   color: #fff;
-  background: #000;
+  background: #0c0c0c;
   font-family: "Space Grotesk";
 }
 
@@ -166,7 +166,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #b3b3b3e2;
+  background: #3c3c3ce2;
 }
 
 ::-moz-scrollbar {

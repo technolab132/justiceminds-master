@@ -16,6 +16,7 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 import ShadowDomWrapper from '../components/ShadowDomWrapper';
+import { RxCross2, RxChevronLeft,RxChevronRight   } from "react-icons/rx";
 
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
@@ -44,10 +45,26 @@ const DetailPanel = ({
   currentlyExtractingEmailIndex,
   incident,
   publicview,
-  activeTabs
+  activeTabs,
+  nextPageTokens,
+  onPageChange,
+  currentPage,
+  totalPages,
+  emailsPerPage
 }) => {
  // console.log('activeTabs',typeof(activeTabs));
   const [activeTab, setActiveTab] = useState('sent');
+  const handleNextPage = (type) => {
+    if (currentPage[type] * emailsPerPage < (type === 'sent' ? sentEmailCount : receivedEmailCount)) {
+      onPageChange(type, 'next');
+    }
+  };
+  
+  const handlePreviousPage = (type) => {
+    if (currentPage[type] > 1) {
+      onPageChange(type, 'previous');
+    }
+  };
   
   
   const [showFullMessages, setShowFullMessages] = useState({}); // State to track if the full message should be shown
@@ -569,12 +586,12 @@ const DetailPanel = ({
             style={{
               position: "absolute",
               right: "60px",
-              top: "120px",
+              top: "90px",
               zIndex: "1000",
             }}
             onClick={handleClose}
           >
-            [x]
+            <RxCross2 />
           </button>
         )}
 
@@ -864,169 +881,210 @@ const DetailPanel = ({
 
             <div style={{ padding: "0px 30px 30px 30px" }}>
               {activeTab === "sent" && (
-                <ul className="">
-                  
-                  {sentEmails.map((email, index) => {
-                    const headers = email.payload.headers;
-                    const fromHeader = headers.find(header => header.name === 'From');
-                    const toHeader = headers.find(header => header.name === 'To');
-                    const subjectHeader = headers.find(header => header.name === 'Subject');
-                    const dateHeader = headers.find(header => header.name === 'Date');
-                    const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
-                    //const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
-                    const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
-                    const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
-                    const emailId = email.id;// headers.find(header => header.name === 'Message-ID')?.value;
-                    console.log('emailid',emailId);
+                <>
+                  <ul className="">
+                    
+                    {sentEmails.map((email, index) => {
+                      const headers = email.payload.headers;
+                      const fromHeader = headers.find(header => header.name === 'From');
+                      const toHeader = headers.find(header => header.name === 'To');
+                      const subjectHeader = headers.find(header => header.name === 'Subject');
+                      const dateHeader = headers.find(header => header.name === 'Date');
+                      const bodyPart = email.payload?.parts?.find(part => part.mimeType === 'text/plain' || part.mimeType === 'text/html');
+                      //const bodyData = bodyPart ? atob(bodyPart.body.data.replace(/-/g, '+').replace(/_/g, '/')) : 'No Message';
+                      const pdfPart = email.payload?.parts?.find(part => part.mimeType === 'application/pdf');
+                      const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
+                      const emailId = email.id;// headers.find(header => header.name === 'Message-ID')?.value;
+                      console.log('emailid',emailId);
 
-                    // Get the body data from the email payload
-                    // Get the body data from the email payload
-                    const { textBody } = getBodyData(email.payload);
-                    console.log('sentHtmlBodies',sentHtmlBodies);
-                    const bodyData = sentBodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
+                      // Get the body data from the email payload
+                      // Get the body data from the email payload
+                      const { textBody } = getBodyData(email.payload);
+                      console.log('sentHtmlBodies',sentHtmlBodies);
+                      const bodyData = sentBodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
 
-                    const handleViewPdf = async () => {
-                      if (pdfAttachmentId) {
-                        try {
-                          const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                          const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                          openPdfViewer(pdfData);
-                        } catch (error) {
-                          console.error('Error fetching or decoding PDF:', error);
-                          // Handle error appropriately, e.g., show error message to user
+                      const handleViewPdf = async () => {
+                        if (pdfAttachmentId) {
+                          try {
+                            const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                            const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                            openPdfViewer(pdfData);
+                          } catch (error) {
+                            console.error('Error fetching or decoding PDF:', error);
+                            // Handle error appropriately, e.g., show error message to user
+                          }
                         }
-                      }
-                    };
-                    const urlsInBody = extractUrlsFromText(bodyData);
-                    console.log('urls',urlsInBody);
-                    return (
-                      <Accordion key={index} type={"single"} collapsible className="w-full">
-                        <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
-                          <div className="flex justify-between gap-2">
-                            <table className="">
-                              <tbody>
-                                <tr className="text-sm">
-                                  <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                    {new Date(dateHeader.value).toLocaleString()}
-                                  </td>
-                                  <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                    {subjectHeader.value}
-                                  </td>
-                                  
-                                </tr>
-                              </tbody>
-                            </table>
-                            <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
-                          </div>
-                          <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
-                            <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
-                              
-                              {pdfAttachmentId && (
-                                <>
-                                  <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
-                                  <button onClick={handleViewPdf}> View PDF</button>
-                                </>
-                              )}
-                              <br /><br />
-                              {`--------------------------------`}
-                              <br />
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
-                              <div className="flex gap-2 mb-2">
-                                <button
-                                  onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
-                                  className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
-                                >
-                                Show Text
-                                </button>
-                                <button
-                                  onClick={() => handleToggleSentFormat(email.id, 'text/html')}
-                                  className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}
-                                >
-                                  Show HTML
-                                </button>
-                              </div>
-                              <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                {/* {urlsInBody && urlsInBody.length > 0 && (
+                      };
+                      const urlsInBody = extractUrlsFromText(bodyData);
+                      console.log('urls',urlsInBody);
+                      return (
+                        <Accordion key={index} type={"single"} collapsible className="w-full">
+                          <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
+                            <div className="flex justify-between gap-2">
+                              <table className="">
+                                <tbody>
+                                  <tr className="text-sm">
+                                    <td className="w-[15%] min-w-2xl dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      {new Date(dateHeader.value).toLocaleString()}
+                                    </td>
+                                    <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                      {subjectHeader.value}
+                                    </td>
+                                    
+                                  </tr>
+                                </tbody>
+                              </table>
+                              <AccordionTrigger className="dark:bg-[#1c1c1c] bg-[#eeeeee] text-gray-500 p-3 rounded-lg w-full"></AccordionTrigger>
+                            </div>
+                            <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
+                              <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
+                                <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
+                                <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
+                                
+                                {pdfAttachmentId && (
                                   <>
-                                    <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
-                                    {`------------------`}
-                                    {urlsInBody.map((url, urlIndex) => (
-                                      <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
-                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
-                                      </p>
-                                    ))}
-                                    {`------------------`}
-                                  </>
-                                )} */}
-                                {sentBodyFormat[emailId] === 'text/plain' ? (
-                                  <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                                    {bodyData}
-                                  </p>
-                                ) : (              
-                                  <ShadowDomWrapper htmlContent={bodyData} />
-                                )}
-                              </div>
-                              {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                                  {bodyData}
-                                </p>
-                                {urlsInBody && urlsInBody.length > 0 && (
-                                  <>
-                                    <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
-                                    {`------------------`}
-                                    {urlsInBody.map((url, urlIndex) => (
-                                      <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
-                                        <a target="_blank" className="underline" href={url}>{url}</a><br />
-                                      </p>
-                                    ))}
-                                    {`------------------`}
+                                    <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
+                                    <button onClick={handleViewPdf}> View PDF</button>
                                   </>
                                 )}
-                              </div> */}
-                              {/* {bodyData !== 'No Message' ? (
-                                <button onClick={() => handleExtractText(`https://drive.google.com/uc?id=${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}`, index, "sent")}>
-                                  Show Full Message
-                                </button>
-                              ) : (
-                                <p>No Message</p>
-                              )} */}
-                              {extractedTexts[`sent_${index}`] && (
+                                <br /><br />
+                                {`--------------------------------`}
+                                <br />
+                                <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
+                                <div className="flex gap-2 mb-2">
+                                  <button
+                                    onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
+                                    className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                  >
+                                  Show Text
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleSentFormat(email.id, 'text/html')}
+                                    className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                  >
+                                    Show HTML
+                                  </button>
+                                </div>
                                 <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                  {extractedUrls[`sent_${index}`] ? (
+                                  {/* {urlsInBody && urlsInBody.length > 0 && (
                                     <>
                                       <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
                                       {`------------------`}
-                                      {extractedUrls[`sent_${index}`]?.map((url) => (
-                                        <p key={url} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                      {urlsInBody.map((url, urlIndex) => (
+                                        <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
                                           <a target="_blank" className="underline" href={url}>{url}</a><br />
                                         </p>
                                       ))}
                                       {`------------------`}
                                     </>
-                                  ) : (
+                                  )} */}
+                                  {sentBodyFormat[emailId] === 'text/plain' ? (
+                                    <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                      {bodyData}
+                                    </p>
+                                  ) : (              
+                                    <ShadowDomWrapper htmlContent={bodyData} />
+                                  )}
+                                </div>
+                                {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                  <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                    {bodyData}
+                                  </p>
+                                  {urlsInBody && urlsInBody.length > 0 && (
                                     <>
-                                      <p className="text-xl text-yellow-500">No Inner Links Found . . .</p>
+                                      <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
+                                      {`------------------`}
+                                      {urlsInBody.map((url, urlIndex) => (
+                                        <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                          <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                        </p>
+                                      ))}
                                       {`------------------`}
                                     </>
                                   )}
-                                  <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", marginTop: "-60px", marginBottom: "50px" }}>
-                                    {extractedTexts[`sent_${index}`]}
-                                  </p>
-                                </div>
-                              )}
-                              {currentlyExtractingEmailIndex === index && loadingtext && <p>Loading . .</p>}
-                              <br />
-                            </li>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    );
-                  })}
-
-                </ul>
-
+                                </div> */}
+                                {/* {bodyData !== 'No Message' ? (
+                                  <button onClick={() => handleExtractText(`https://drive.google.com/uc?id=${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}`, index, "sent")}>
+                                    Show Full Message
+                                  </button>
+                                ) : (
+                                  <p>No Message</p>
+                                )} */}
+                                {extractedTexts[`sent_${index}`] && (
+                                  <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                    {extractedUrls[`sent_${index}`] ? (
+                                      <>
+                                        <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
+                                        {`------------------`}
+                                        {extractedUrls[`sent_${index}`]?.map((url) => (
+                                          <p key={url} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
+                                            <a target="_blank" className="underline" href={url}>{url}</a><br />
+                                          </p>
+                                        ))}
+                                        {`------------------`}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <p className="text-xl text-yellow-500">No Inner Links Found . . .</p>
+                                        {`------------------`}
+                                      </>
+                                    )}
+                                    <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", marginTop: "-60px", marginBottom: "50px" }}>
+                                      {extractedTexts[`sent_${index}`]}
+                                    </p>
+                                  </div>
+                                )}
+                                {currentlyExtractingEmailIndex === index && loadingtext && <p>Loading . .</p>}
+                                <br />
+                              </li>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      );
+                    })}
+                    {/* <div className="pagination-controls flex justify-between items-center mt-4">
+                      <button
+                        onClick={() => handlePreviousPage("sent")}
+                        disabled={currentPage["sent"] === 1}
+                        className={`p-2 rounded ${currentPage["sent"] === 1 ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-blue-500 text-white'}`}
+                      >
+                        Previous
+                      </button>
+                      <span className="text-gray-700">
+                        Page {currentPage["sent"]} of {sentEmailCount}
+                      </span>
+                      <button
+                        onClick={() => handleNextPage("sent")}
+                        disabled={!nextPageTokens["sent"]}
+                        className={`p-2 rounded ${!nextPageTokens["sent"] ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-blue-500 text-white'}`}
+                      >
+                        Next
+                      </button>
+                    </div> */}
+                     {activeTab === "sent" && sentEmailCount > emailsPerPage && (
+                      <div className="pagination-controls flex justify-between items-center mt-4">
+                        <button
+                          onClick={() => handlePreviousPage("sent")}
+                          disabled={currentPage["sent"] === 1}
+                          className={`p-2 rounded ${currentPage["sent"] === 1 ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-blue-500 text-white'}`}
+                        >
+                          <RxChevronLeft />
+                        </button>
+                        <span className="text-gray-700">
+                          Page {currentPage["sent"]} of {Math.ceil(sentEmailCount / emailsPerPage)}
+                        </span>
+                        <button
+                          onClick={() => handleNextPage("sent")}
+                          disabled={currentPage["sent"] * emailsPerPage >= sentEmailCount && !nextPageTokens["sent"]}
+                          className={`p-2 rounded ${currentPage["sent"] * emailsPerPage >= sentEmailCount && !nextPageTokens["sent"] ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-blue-500 text-white'}`}
+                        >
+                          <RxChevronRight />
+                        </button>
+                      </div>
+                     )}
+                  </ul>
+                  
+                </>
               )}
               {activeTab === "received" && (
                 <ul className="">
@@ -1081,7 +1139,7 @@ const DetailPanel = ({
                             <table className="">
                               <tbody>
                                 <tr className="text-sm">
-                                  <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                  <td className="w-[15%] min-w-2xl dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                     {new Date(dateHeader.value).toLocaleString()}
                                   </td>
                                   <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
@@ -1101,8 +1159,8 @@ const DetailPanel = ({
                           </div>
                           <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
                             <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
+                              <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader?.value} <br />
+                              <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader?.value} <br /><br />
                               {pdfAttachmentId && (
                                 <>
                                   <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
@@ -1157,6 +1215,28 @@ const DetailPanel = ({
                       </Accordion>
                     );
                   })}
+                  {activeTab === "received" && receivedEmailCount > emailsPerPage && (
+                    <div className="pagination-controls flex justify-between items-center mt-4">
+                      <button
+                        onClick={() => handlePreviousPage("received")}
+                        disabled={currentPage["received"] === 1}
+                        className={` ${currentPage["received"] === 1 ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                      >
+                        <RxChevronLeft />
+                      </button>
+                      <span className="text-gray-600">
+                        Page {currentPage["received"]} of {Math.ceil(receivedEmailCount / emailsPerPage)}
+                      </span>
+                      <button
+                        onClick={() => handleNextPage("received")}
+                        disabled={currentPage["received"] * emailsPerPage >= receivedEmailCount && !nextPageTokens["received"]}
+                        className={`p-2 rounded ${currentPage["received"] * emailsPerPage >= receivedEmailCount && !nextPageTokens["received"] ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                      >
+                        <RxChevronRight />
+                      </button>
+                    </div>
+                  )}
+
                 </ul>
               )}
               {/* {activeTab === "pdflinks" && (
@@ -1284,7 +1364,7 @@ const DetailPanel = ({
                                     <table className="">
                                       <tbody>
                                         <tr className="text-sm">
-                                          <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                          <td className="w-[15%] min-w-2xl dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                             {new Date(dateHeader.value).toLocaleString()}
                                           </td>
                                           <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
@@ -1351,7 +1431,7 @@ const DetailPanel = ({
                                     <table className="">
                                       <tbody>
                                         <tr className="text-sm">
-                                          <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                          <td className="w-[15%] min-w-2xl dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                             {new Date(dateHeader.value).toLocaleString()}
                                           </td>
                                           <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
@@ -1435,10 +1515,10 @@ const DetailPanel = ({
                                   <table className="">
                                     <tbody>
                                       <tr className="text-sm">
-                                        <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                        <td className="max-w-[25%] min-w-[150px] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab] whitespace-nowrap">
                                           {new Date(dateHeader.value).toLocaleString()}
                                         </td>
-                                        <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                        <td className="max-w-[75%] min-w-[200px] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                           {subjectHeader.value}
                                         </td>
                                         
@@ -1497,7 +1577,7 @@ const DetailPanel = ({
                                   <table className="">
                                     <tbody>
                                       <tr className="text-sm">
-                                        <td className="w-[25%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                        <td className="w-[15%] min-w-2xl dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                           {new Date(dateHeader.value).toLocaleString()}
                                         </td>
                                         <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
