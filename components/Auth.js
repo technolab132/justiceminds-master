@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '../utils/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import Cookies from 'universal-cookie';
-
+import { FcGoogle } from "react-icons/fc"
 const Auth = () => {
   const router = useRouter();
 
@@ -81,24 +81,29 @@ const Auth = () => {
   return (
     <>
     <div className="bg-black flex flex-col items-center justify-center h-screen">
-        <img
-          src="/logo11.png"
-          alt="Logo"
-          className="bigimg mb-3"
-          style={{ width: "20%" }}
-        />
-        <img
-          src="/logo11.png"
-          alt="Logo"
-          className="smallimg mb-3"
-          style={{ width: "20%" }}
-        />
-        
-        
-        <button onClick={signInWithGoogle} className=" text-white px-8 py-2 cursor-pointer"
-            style={{ background: "#1d1d1d",borderRadius:"5px" }}>Sign In with Google</button>
-        {/* {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} */}
-      </div>
+      <img
+        src="/logo11.png"
+        alt="Logo"
+        className="bigimg mb-3"
+        style={{ width: "20%" }}
+      />
+      <img
+        src="/logo11.png"
+        alt="Logo"
+        className="smallimg mb-3"
+        style={{ width: "20%" }}
+      />
+
+      <button
+        onClick={signInWithGoogle}
+        className="text-white flex items-center px-8 py-2 cursor-pointer"
+        style={{ background: "#1d1d1d", borderRadius: "5px" }}
+      >
+        <FcGoogle className="mr-2" />
+        Sign In with Google
+      </button>
+      {/* {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>} */}
+    </div>
     </>
   );
 };

@@ -11,7 +11,7 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 import { LampContainer } from "../components/ui/lamp";
-
+import { FcGoogle } from "react-icons/fc"
 const spotlight = () => {
   const router = useRouter();
 
@@ -403,10 +403,10 @@ const spotlight = () => {
                 <div class="ckz2n cfbl1 c3wgq cqtii">
                   <button
                     onClick={signInWithGoogle}
-                    //className="text-white px-8 py-2 cursor-pointer"
-                    class="cnvgl cl2gl ci9vu cy976 c60cz cs9if cqls2 ciqx9 c3nel ckuce cy34g hover:bg-gray-600 bg-gray-800"
+                    class="cnvgl cl2gl ci9vu cy976 c60cz cs9if cqls2 ciqx9 c3nel ckuce cy34g hover:bg-gray-600 bg-gray-800 flex items-center"
                     style={{ background: "#1d1d1d", borderRadius: "5px" }}
                   >
+                    <FcGoogle class="mr-2" />
                     Sign In with Google
                   </button>
                   <a
@@ -416,7 +416,7 @@ const spotlight = () => {
                     About Us
                   </a>
                   <a
-                    class=" c0kcv cnzrq cl7to cs9if csepm cx2jt c25ay c3nel ckuce cy34g hover:bg-gray-600 bg-gray-800"
+                    class="c0kcv cnzrq cl7to cs9if csepm cx2jt c25ay c3nel ckuce cy34g hover:bg-gray-600 bg-gray-800"
                     href="mailto:consult@legaldueprocess.com"
                   >
                     Contact Us
