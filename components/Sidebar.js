@@ -1,7 +1,6 @@
 import React from 'react';
-import { SkeletonButton, SkeletonTextField, SkeletonParagraph, SkeletonDateField } from './Skeletons'; // Ensure this path is correct
-
-
+// import { SkeletonButton, SkeletonTextField, SkeletonParagraph, SkeletonDateField } from './Skeletons'; // Ensure this path is correct
+import { SkeletonCard ,SkeletonButton } from './ui/Skeletons';
 const Sidebar = ({ data, activeNameId, onSelectName, loading, hasMore, lastEmailRef }) => {
   return (
     <div

@@ -24,6 +24,8 @@ import { supabase } from '../utils/supabaseClient';
 import debounce from 'lodash.debounce'; // Make sure to install lodash.debounce if you don't have it
 import { AiOutlineSearch, AiOutlineClose } from 'react-icons/ai'; // Optional: Using React Icons for search and clear icons
 import { RxReset } from 'react-icons/rx';
+import { Skeleton } from "../components/ui/skeleton";
+import { SkeletonDetails } from "../components/ui/Skeletons";
 const Home = () => {
   const router = useRouter();
   const indi = router.params?.indi;
@@ -790,10 +792,7 @@ const fetchMoreEmails = async (type) => {
                 <ResizablePanel className="flex-grow overflow-y-auto" defaultSize={80}>
                   {/* Details Panel content */}
                   {isLoading ? (
-                    <div className="loader-container">
-                      <div className="loader" style={{height:'100px',width: '100px'}}></div>
-                    </div>
-                    
+                    <SkeletonDetails />
                   ) : selectedName ? (
                     <DetailPanel
                       selectedData={selectedName}
