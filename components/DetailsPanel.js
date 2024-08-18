@@ -598,8 +598,11 @@ const DetailPanel = ({
   const handleShareClick = async () => {
     try {
       // Example emailId, adjust according to your data
-      const emailId = 'parthdawda9@gmail.com';
-
+      const data = localStorage.getItem('sb-sbyocimrxpmvuelrqzuw-auth-token');
+      const userData = JSON.parse(data);
+      console.log('data',userData);
+      const emailId = userData.user.email;
+      
       // Generate a shareable link
       const shareableLink = await generateShareableLink(emailId);
 
@@ -1383,10 +1386,10 @@ const DetailPanel = ({
                                   <table className="">
                                     <tbody>
                                       <tr className="text-sm">
-                                        <td className="max-w-[25%] min-w-[150px] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab] whitespace-nowrap">
+                                        <td className="w-[15%] min-w-2xl dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                           {new Date(dateHeader.value).toLocaleString()}
                                         </td>
-                                        <td className="max-w-[75%] min-w-[200px] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
+                                        <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
                                           {subjectHeader.value}
                                         </td>
                                         
