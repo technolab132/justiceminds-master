@@ -7,62 +7,112 @@ export default async function handler(req, res) {
   }
 
   try {
-    const cookies = cookie.parse(req.headers.cookie || '');
-    const accessToken = cookies.access_token;
-    const refreshToken = cookies.refresh_token;
-
-    if (!accessToken || !refreshToken) {
-      return res.status(401).json({ error: 'No OAuth tokens found' });
-    }
-
-    const senderEmail = req.query.sender;
-    const type = req.query.type;
-
-    if (!senderEmail) {
-      return res.status(400).json({ error: 'Sender email is required' });
-    }
-
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-    );
-
-    oauth2Client.setCredentials({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-
-    // Refresh the access token if needed
-    // const { credentials } = await oauth2Client.refreshAccessToken();
-    // oauth2Client.setCredentials(credentials);
-
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-
-    let query = '';
-    if (type === 'RECIEVE') {
-      query = `from:${senderEmail}`;
-    } else if (type === 'SENT') {
-      query = `to:${senderEmail}`;
-    }
-
-    console.log(`Query: ${query}`); // Log the constructed query
-
-    let totalEmails = 0;
-    let pageToken = null;
-
-    do {
-      const response = await gmail.users.messages.list({
-        userId: 'me',
-        q: query,
-        pageToken: pageToken,
-        maxResults: 100,
+    if(req.query.token){
+      const accessToken = req.query.token;
+      const refreshToken = req.query.refreshToken;
+      const type = req.query.type;
+      const senderEmail = req.query.emailId;
+  
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+      );
+  
+      oauth2Client.setCredentials({
+        access_token: accessToken,
+        refresh_token: refreshToken,
       });
-
-      totalEmails += response.data.messages ? response.data.messages.length : 0;
-      pageToken = response.data.nextPageToken;
-    } while (pageToken);
-
-    res.status(200).json({ count: totalEmails });
+  
+      // Refresh the access token if needed
+      // const { credentials } = await oauth2Client.refreshAccessToken();
+      // oauth2Client.setCredentials(credentials);
+  
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+  
+      let query = '';
+      if (type === 'RECIEVE') {
+        query = `from:${senderEmail},label:INBOX`;
+      } else if (type === 'SENT') {
+        query = `to:${senderEmail},label:${type}`;
+      }
+  
+      console.log(`Query: ${query}`); // Log the constructed query
+  
+      let totalEmails = 0;
+      let pageToken = null;
+  
+      do {
+        const response = await gmail.users.messages.list({
+          userId: 'me',
+          q: query,
+          pageToken: pageToken,
+          maxResults: 100,
+        });
+  
+        totalEmails += response.data.messages ? response.data.messages.length : 0;
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
+  
+      res.status(200).json({ count: totalEmails });
+    }else{
+      const cookies = cookie.parse(req.headers.cookie || '');
+      const accessToken = cookies.access_token;
+      const refreshToken = cookies.refresh_token;
+  
+      if (!accessToken || !refreshToken) {
+        return res.status(401).json({ error: 'No OAuth tokens found' });
+      }
+  
+      const senderEmail = req.query.sender;
+      const type = req.query.type;
+  
+      if (!senderEmail) {
+        return res.status(400).json({ error: 'Sender email is required' });
+      }
+  
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+      );
+  
+      oauth2Client.setCredentials({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+  
+      // Refresh the access token if needed
+      // const { credentials } = await oauth2Client.refreshAccessToken();
+      // oauth2Client.setCredentials(credentials);
+  
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+  
+      let query = '';
+      if (type === 'RECIEVE') {
+        query = `from:${senderEmail},label:INBOX`;
+      } else if (type === 'SENT') {
+        query = `to:${senderEmail},label:${type}`;
+      }
+  
+      console.log(`Query: ${query}`); // Log the constructed query
+  
+      let totalEmails = 0;
+      let pageToken = null;
+  
+      do {
+        const response = await gmail.users.messages.list({
+          userId: 'me',
+          q: query,
+          pageToken: pageToken,
+          maxResults: 100,
+        });
+  
+        totalEmails += response.data.messages ? response.data.messages.length : 0;
+        pageToken = response.data.nextPageToken;
+      } while (pageToken);
+  
+      res.status(200).json({ count: totalEmails });
+    }
+    
   } catch (error) {
     console.error('Error fetching email count:', error.response?.data || error.message);
     res.status(500).json({ error: 'Internal Server Error' });

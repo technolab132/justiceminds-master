@@ -9,6 +9,8 @@ import dynamic from "next/dynamic";
 import debounce from "lodash.debounce";
 import Link from "next/link";
 import { supabase } from '../utils/supabaseClient';
+import { useRouter } from 'next/router';
+import crypto from 'crypto';
 import {
   Accordion,
   AccordionContent,
@@ -343,11 +345,18 @@ const DetailPanel = ({
 
   // Function to fetch attachment data
   const fetchAttachment = async (emailId, attachmentId) => {
-    const response = await fetch(`/api/fetch-attachments?emailId=${emailId}&attachmentId=${attachmentId}`);
+    const response = await fetch(`/api/fetch-attachments?emailId=${emailId}&attachmentId=${attachmentId}&`);
     const data = await response.json();
     console.log('fetch attachment data', data);
     return data;
   };
+  const fetchAttachmentForShare = async (emailId, attachmentId,accessToken, refreshToken) => {
+    const response = await fetch(`/api/fetch-attachments?emailId=${emailId}&attachmentId=${attachmentId}&token=${accessToken}&refreshToken=${refreshToken}`);
+    const data = await response.json();
+    console.log('fetch attachment data', data);
+    return data;
+  };
+
 
   // Function to convert base64 to Uint8Array
   const base64ToUint8Array = (base64) => {
@@ -365,6 +374,7 @@ const DetailPanel = ({
     try {
       const blob = new Blob([pdfData], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
+      console.log('pdf-url',url);
       setisLoading(true);
       setPdfLink(url);
       setShowPdfViewer(true);
@@ -534,10 +544,17 @@ const DetailPanel = ({
     const inlineImagePromises = Object.entries(inlineImages).map(async ([cid, attachmentId]) => {
       try {
         console.log(`Fetching attachment for CID: ${cid} with ID: ${attachmentId}`);
-        const attachmentData = await fetchAttachment(emailId, attachmentId);
-        const base64Data = attachmentData.data.replace(/-/g, '+').replace(/_/g, '/');
-        inlineImages[cid] = `data:image/png;base64,${base64Data}`;
-        console.log(`Successfully fetched and replaced image for CID: ${cid}`);
+        if(selectedData.accessToken){
+          const attachmentData = await fetchAttachmentForShare(emailId, attachmentId,selectedData.accessToken,selectedData.refreshToken);
+          const base64Data = attachmentData.data.replace(/-/g, '+').replace(/_/g, '/');
+          inlineImages[cid] = `data:image/png;base64,${base64Data}`;
+          console.log(`Successfully fetched and replaced image for CID: ${cid}`);
+        }else{
+          const attachmentData = await fetchAttachment(emailId, attachmentId);
+          const base64Data = attachmentData.data.replace(/-/g, '+').replace(/_/g, '/');
+          inlineImages[cid] = `data:image/png;base64,${base64Data}`;
+          console.log(`Successfully fetched and replaced image for CID: ${cid}`);
+        }
       } catch (error) {
         console.error(`Error fetching image with CID: ${cid}`, error);
       }
@@ -562,9 +579,53 @@ const DetailPanel = ({
     setIsOpenAccordion(isOpenAccordion === emailId ? null : emailId);
   };
 
-  const queryParams = new URLSearchParams(selectedData).toString();
+
   
-  
+
+  // Encryption setup
+  const algorithm = 'aes-256-cbc';
+  const secretKey = process.env.NEXT_PUBLIC_ENCRYPTION_SECRET; // Store your 32-byte secret key in environment variables
+  const iv = crypto.randomBytes(16);
+
+  function encryptData(data) {
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey, 'hex'), iv);
+    let encrypted = cipher.update(JSON.stringify(data));
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return iv.toString('hex') + ':' + encrypted.toString('hex');
+  }
+
+
+  const handleShareClick = async () => {
+    try {
+      // Example emailId, adjust according to your data
+      const emailId = 'parthdawda9@gmail.com';
+
+      // Generate a shareable link
+      const shareableLink = await generateShareableLink(emailId);
+
+      // Copy link to clipboard
+      navigator.clipboard.writeText(shareableLink);
+      alert('Shareable link copied to clipboard!');
+      window.open(shareableLink,'_blank');
+    } catch (error) {
+      console.error('Error generating shareable link:', error);
+    }
+  };
+
+  const generateShareableLink = async (emailId) => {
+    // Call your API to create a token and get the shareable link
+    const response = await fetch('/api/createShareableLink', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(selectedData),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error);
+
+    return result.shareableLink;
+  };
+
   return (
     <div style={{ lineHeight: "2rem", overflowY: "scroll", height: "90vh" }}>
       {showPdfViewer && (
@@ -597,21 +658,13 @@ const DetailPanel = ({
 
         {publicview === false && (
           <>
-            <Link
-              target="_blank"
-              onClick={() =>
-                copy(`https://justice-minds.com/share/${queryParams}`)
-              }
-              // href={`/share?${queryParams}`}
-              href={`/share/${selectedData.Email}?${queryParams}`}
-              // onClick={handleClick}
-              className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md"
-            >
-              Share Page
-            </Link>
+            <button className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" onClick={handleShareClick}>
+              Share
+            </button>
             <br />
             <br />
-          </>
+           
+        </>
         )}
 
         <p className="text-black dark:text-white">
@@ -818,7 +871,7 @@ const DetailPanel = ({
                       const pdfAttachmentId = pdfPart ? pdfPart.body.attachmentId : null;
                       const emailId = email.id;// headers.find(header => header.name === 'Message-ID')?.value;
                       console.log('emailid',emailId);
-
+                      console.log('pdfData',email.pdfData);
                       // Get the body data from the email payload
                       // Get the body data from the email payload
                       const { textBody } = getBodyData(email.payload);
@@ -828,9 +881,17 @@ const DetailPanel = ({
                       const handleViewPdf = async () => {
                         if (pdfAttachmentId) {
                           try {
-                            const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                            const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                            openPdfViewer(pdfData);
+                            if(selectedData.accessToken){
+                              const attachmentData = await fetchAttachmentForShare(emailId, pdfAttachmentId,selectedData.accessToken,selectedData.refreshToken);
+                              const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                              openPdfViewer(pdfData);
+                              
+                            }else{
+                              const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                              const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                              openPdfViewer(pdfData);
+                            }
+                            
                           } catch (error) {
                             console.error('Error fetching or decoding PDF:', error);
                             // Handle error appropriately, e.g., show error message to user
@@ -888,18 +949,7 @@ const DetailPanel = ({
                                   </button>
                                 </div>
                                 <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                  {/* {urlsInBody && urlsInBody.length > 0 && (
-                                    <>
-                                      <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
-                                      {`------------------`}
-                                      {urlsInBody.map((url, urlIndex) => (
-                                        <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
-                                          <a target="_blank" className="underline" href={url}>{url}</a><br />
-                                        </p>
-                                      ))}
-                                      {`------------------`}
-                                    </>
-                                  )} */}
+                                  
                                   {sentBodyFormat[emailId] === 'text/plain' ? (
                                     <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                       {bodyData}
@@ -908,30 +958,7 @@ const DetailPanel = ({
                                     <ShadowDomWrapper htmlContent={bodyData} />
                                   )}
                                 </div>
-                                {/* <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
-                                  <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                                    {bodyData}
-                                  </p>
-                                  {urlsInBody && urlsInBody.length > 0 && (
-                                    <>
-                                      <p className="text-green-500 text-xl">Links Found in the Mail . . .</p>
-                                      {`------------------`}
-                                      {urlsInBody.map((url, urlIndex) => (
-                                        <p key={urlIndex} style={{ whiteSpace: "pre-wrap", color: "#fff" }}>
-                                          <a target="_blank" className="underline" href={url}>{url}</a><br />
-                                        </p>
-                                      ))}
-                                      {`------------------`}
-                                    </>
-                                  )}
-                                </div> */}
-                                {/* {bodyData !== 'No Message' ? (
-                                  <button onClick={() => handleExtractText(`https://drive.google.com/uc?id=${pdfLink.match(/\/d\/([a-zA-Z0-9_-]+)\//)[1]}`, index, "sent")}>
-                                    Show Full Message
-                                  </button>
-                                ) : (
-                                  <p>No Message</p>
-                                )} */}
+                                
                                 {extractedTexts[`sent_${index}`] && (
                                   <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                     {extractedUrls[`sent_${index}`] ? (
@@ -1032,9 +1059,16 @@ const DetailPanel = ({
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
                         try {
-                          const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                          const pdfData = atob(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                          openPdfViewer(pdfData);
+                          if(selectedData.accessToken){
+                            const attachmentData = await fetchAttachmentForShare(emailId, pdfAttachmentId,selectedData.accessToken,selectedData.refreshToken);
+                            const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                            openPdfViewer(pdfData);
+                            
+                          }else{
+                            const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                            const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                            openPdfViewer(pdfData);
+                          }
                         } catch (error) {
                           console.error('Error fetching or decoding PDF:', error);
                           // Handle error appropriately, e.g., show error message to user
@@ -1202,11 +1236,20 @@ const DetailPanel = ({
                                           const handleViewPdf = async () => {
                                             if (pdfAttachmentId) {
                                               try {
-                                                const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                                                const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                                                openPdfViewer(pdfData);
+                                                if(selectedData.accessToken){
+                                                  const attachmentData = await fetchAttachmentForShare(emailId, pdfAttachmentId,selectedData.accessToken,selectedData.refreshToken);
+                                                  const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                                                  openPdfViewer(pdfData);
+                                                  
+                                                }else{
+                                                  const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                                                  const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                                                  openPdfViewer(pdfData);
+                                                }
+                                                
                                               } catch (error) {
                                                 console.error('Error fetching or decoding PDF:', error);
+                                                // Handle error appropriately, e.g., show error message to user
                                               }
                                             }
                                           };
@@ -1269,9 +1312,16 @@ const DetailPanel = ({
                                           const handleViewPdf = async () => {
                                             if (pdfAttachmentId) {
                                               try {
-                                                const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
-                                                const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
-                                                openPdfViewer(pdfData);
+                                                if(selectedData.accessToken){
+                                                  const attachmentData = await fetchAttachmentForShare(emailId, pdfAttachmentId,selectedData.accessToken,selectedData.refreshToken);
+                                                  const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                                                  openPdfViewer(pdfData);
+                                                  
+                                                }else{
+                                                  const attachmentData = await fetchAttachment(emailId, pdfAttachmentId);
+                                                  const pdfData = base64ToUint8Array(attachmentData.data.replace(/-/g, '+').replace(/_/g, '/'));
+                                                  openPdfViewer(pdfData);
+                                                }
                                               } catch (error) {
                                                 console.error('Error fetching or decoding PDF:', error);
                                               }
