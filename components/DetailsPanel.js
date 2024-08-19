@@ -17,6 +17,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../components/ui/alert-dialog"
+import { Copy } from "lucide-react";
+import { Button } from "../components/ui/button"
 import ShadowDomWrapper from '../components/ShadowDomWrapper';
 import { RxCross2, RxChevronLeft,RxChevronRight   } from "react-icons/rx";
 
@@ -594,22 +607,25 @@ const DetailPanel = ({
     return iv.toString('hex') + ':' + encrypted.toString('hex');
   }
 
-
+  
+  const [shareableLink, setShareableLink] = useState();
   const handleShareClick = async () => {
     try {
       // Example emailId, adjust according to your data
-      const data = localStorage.getItem('sb-sbyocimrxpmvuelrqzuw-auth-token');
+      const data = await localStorage.getItem('sb-sbyocimrxpmvuelrqzuw-auth-token');
       const userData = JSON.parse(data);
       console.log('data',userData);
       const emailId = userData.user.email;
       
       // Generate a shareable link
-      const shareableLink = await generateShareableLink(emailId);
-
+      const link = await generateShareableLink(emailId);
+      setShareableLink(link);
       // Copy link to clipboard
-      navigator.clipboard.writeText(shareableLink);
-      alert('Shareable link copied to clipboard!');
-      window.open(shareableLink,'_blank');
+      console.log(link)
+      console.log('shareableLink',shareableLink);
+      // navigator.clipboard.writeText(shareableLink);
+      // alert('Shareable link copied to clipboard!');
+      // window.open(shareableLink,'_blank');
     } catch (error) {
       console.error('Error generating shareable link:', error);
     }
@@ -661,12 +677,87 @@ const DetailPanel = ({
 
         {publicview === false && (
           <>
-            <button className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" onClick={handleShareClick}>
+            {/* <button className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" variant="outline" onClick={handleShareClick}>
               Share
             </button>
             <br />
+            <br /> */}
+           <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" variant="outline" onClick={handleShareClick}>
+                  Share
+                </button>
+                
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Share link</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Anyone who has this link will be able to view this.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <label htmlFor="link" className="sr-only">
+                      Link
+                    </label>
+                    <input
+                      id="link"
+                      class="text-black dark:text-black"
+                      value={shareableLink}
+                      readOnly
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    size="sm"
+                    className="px-3"
+                    onClick={() => navigator.clipboard.writeText(shareableLink)}
+                  >
+                    <span className="sr-only">Copy</span>
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>
+                    <button type="button" variant="secondary">
+                      Close
+                    </button>
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <br />
-           
+            <br />
+            {/* Consent Form Dialog */}
+            
+            {/* <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" variant="outline">Share</button>
+              </AlertDialogTrigger>
+              
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Share</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    By agreeing, you consent that your data will be encrypted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction
+                    onClick={handleShareClick}
+                  >
+                    Agree and Share
+                  </AlertDialogAction>
+                  <AlertDialogCancel>
+                    <button type="button" variant="secondary">
+                      Cancel
+                    </button>
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+                
+            </AlertDialog> */}
         </>
         )}
 
@@ -1576,117 +1667,112 @@ const DetailPanel = ({
               {activeTab === "embed" && (
                 <>
                   {publicview === false && (
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
+                    <>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          <button
+                            className={`px-8 py-2 rounded-md ${
+                              !toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
+                            } text-gray-200`}
+                            onClick={() => setToggleEmbed(false)}
+                          >
+                            Embed Link
+                          </button>
+                          <button
+                            className={`px-8 py-2 rounded-md ${
+                              toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
+                            } text-gray-200`}
+                            onClick={() => setToggleEmbed(true)}
+                          >
+                            Embed Content
+                          </button>
+                        </div>
                         <button
-                          className={`px-8 py-2 rounded-md ${
-                            !toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
-                          } text-gray-200`}
-                          onClick={() => setToggleEmbed(false)}
+                          className={`px-8 py-2 rounded-md dark:bg-[#1d1d1d] ${
+                            masterembedlink?.length <= 0 ? "bg-gray-300 text-white cursor-not-allowed" : "bg-[#f1c40f] text-white"
+                          } ml-4`}
+                          onClick={() => {
+                            if (masterembedlink?.length > 0) {
+                              window.location.href = `/${selectedData["Email"]}`;
+                            }
+                          }}
+                          disabled={masterembedlink?.length <= 0}
                         >
-                          Embed Link
-                        </button>
-                        <button
-                          className={`px-8 py-2 rounded-md ${
-                            toggleEmbed ? "dark:bg-[#1d1d1d] bg-[#ebebeb] text-black" : "dark:bg-black text-black bg-white"
-                          } text-gray-200`}
-                          onClick={() => setToggleEmbed(true)}
-                        >
-                          Embed Content
+                          Share
                         </button>
                       </div>
-                      <button
-                        className={`px-8 py-2 rounded-md dark:bg-[#1d1d1d] ${
-                          masterembedlink?.length <= 0 ? "bg-gray-300 text-white cursor-not-allowed" : "bg-[#f1c40f] text-white"
-                        } ml-4`}
-                        onClick={() => {
-                          if (masterembedlink?.length > 0) {
-                            window.location.href = `/${selectedData["Email"]}`;
-                          }
-                        }}
-                        disabled={masterembedlink?.length <= 0}
-                      >
-                        Share
-                      </button>
-                    </div>
-                  )}
-
-                  {isLoading ? (
-                    <p>Loading . . </p>
-                  ) : (
-                    <>
                       <div className="embedlinks py-5">
-                        {toggleEmbed ? (
-                          <>
-                            <h2 className="text-lg font-bold text-white pb-5">
-                              Embed Content
-                            </h2>
-                            <JoditEditor
-                              ref={editor}
-                              value={embedLink}
-                              config={{
-                                autofocus: false,
-                                readonly: false,
-                                theme: "dark",
-                                statusbar: false,
-                              }}
-                              onBlur={handleComplaintChangeDebounced}
-                            />
-                            <input
-                              className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
-                              disabled
-                              type="text"
-                              name="name"
-                              value={selectedData["Name"]}
-                            />
-                            {embedLink === "" ? (
-                              <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
-                                Add Link
-                              </button>
-                            ) : (
-                              <button
-                                className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
-                                onClick={handleEmbedLinkAdd}
-                              >
-                                Add Link
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <h2 className="text-lg font-bold dark:text-white text-black pb-5">
-                              Embed Link
-                            </h2>
-                            <input
-                              className="text-white rounded-md bg-[#1d1d1d] my-2 p-2 mr-4"
-                              type="text"
-                              name="link"
-                              value={embedLink2}
-                              placeholder="Enter the Embed Link"
-                              required
-                              onChange={(e) => setEmbedLink2(e.target.value)}
-                            />
-                            <input
-                              className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
-                              disabled
-                              type="text"
-                              name="name"
-                              value={selectedData["Name"]}
-                            />
-                            {embedLink2 === "" ? (
-                              <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
-                                Add Link
-                              </button>
-                            ) : (
-                              <button
-                                className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
-                                onClick={handleEmbedLinkAdd2}
-                              >
-                                Add Link
-                              </button>
-                            )}
-                          </>
-                        )}
+                          {toggleEmbed ? (
+                            <>
+                              <h2 className="text-lg font-bold text-white pb-5">
+                                Embed Content
+                              </h2>
+                              <JoditEditor
+                                ref={editor}
+                                value={embedLink}
+                                config={{
+                                  autofocus: false,
+                                  readonly: false,
+                                  theme: "dark",
+                                  statusbar: false,
+                                }}
+                                onBlur={handleComplaintChangeDebounced}
+                              />
+                              <input
+                                className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
+                                disabled
+                                type="text"
+                                name="name"
+                                value={selectedData["Name"]}
+                              />
+                              {embedLink === "" ? (
+                                <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
+                                  Add Link
+                                </button>
+                              ) : (
+                                <button
+                                  className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
+                                  onClick={handleEmbedLinkAdd}
+                                >
+                                  Add Link
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <h2 className="text-lg font-bold dark:text-white text-black pb-5">
+                                Embed Link
+                              </h2>
+                              <input
+                                className="text-white rounded-md bg-[#1d1d1d] my-2 p-2 mr-4"
+                                type="text"
+                                name="link"
+                                value={embedLink2}
+                                placeholder="Enter the Embed Link"
+                                required
+                                onChange={(e) => setEmbedLink2(e.target.value)}
+                              />
+                              <input
+                                className="cursor-not-allowed text-black rounded-md my-2 p-2 mr-4"
+                                disabled
+                                type="text"
+                                name="name"
+                                value={selectedData["Name"]}
+                              />
+                              {embedLink2 === "" ? (
+                                <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
+                                  Add Link
+                                </button>
+                              ) : (
+                                <button
+                                  className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
+                                  onClick={handleEmbedLinkAdd2}
+                                >
+                                  Add Link
+                                </button>
+                              )}
+                            </>
+                          )}
                       </div>
                       <p>
                         Total Embed Links :{" "}
@@ -1696,6 +1782,14 @@ const DetailPanel = ({
                       </p>
                     </>
                   )}
+
+                  {/* {isLoading ? (
+                    <p>Loading . . </p>
+                  ) : (
+                    <>
+                      
+                    </>
+                  )} */}
 
                   {/* <div className="flex items-center">
                     <button
