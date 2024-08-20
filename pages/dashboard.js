@@ -49,7 +49,7 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [masterData, setMasterData] = useState([]);
   const [activeNameId, setActiveNameId] = useState(null);
-
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextPageTokens, setNextPageTokens] = useState({
     sent: null,
     received: null,
@@ -554,18 +554,61 @@ const fetchMoreEmails = async (type) => {
   const [searchActive, setSearchActive] = useState(false);
 
 
+  // const fetchEmails = useCallback(async (token = null) => {
+  //   if (loading || !hasMore || searchActive) return; // Prevent fetching if search is active
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch(`/api/fetch-emails?label=INBOX${token ? `&pageToken=${token}` : ''}`);
+  //     const data = await response.json();
+  //     if (data.error === 'auth_required') {
+  //       // Redirect to authentication callback
+  //       const { error } = await supabase.auth.signOut();
+  //       window.location.href = '/auth/login';
+  //       return;
+  //     }
+  //     if (response.ok) {
+  //       setEmails(prevEmails => {
+  //         const uniqueEmails = new Map(prevEmails.map(email => [email.email, email]));
+  //         data.uniqueClients.forEach(client => {
+  //           if (!uniqueEmails.has(client.email)) {
+  //             uniqueEmails.set(client.email, client);
+  //           }
+  //         });
+  //         return Array.from(uniqueEmails.values());
+  //       });
+  //       setPageToken(data.nextPageToken); // Update with the nextPageToken from the response
+  //       setHasMore(data.nextPageToken !== null);
+  //     } else {
+  //       setError(data.error);
+  //     }
+  //     setIsLoadingMore(false);
+  //   } catch (err) {
+  //     setLoading(false);
+  //     console.error('Error fetching emails:', err);
+  //     setError(err.message);
+  //     setHasMore(false)
+  //     return
+      
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [loading, hasMore]);
+
   const fetchEmails = useCallback(async (token = null) => {
-    if (loading || !hasMore || searchActive) return; // Prevent fetching if search is active
+    if (loading || isLoadingMore || !hasMore || searchActive) return; // Prevent fetching if already loading or searching
     try {
-      setLoading(true);
+      if (!token) setLoading(true); // Set loading true only for the first load
+      else setIsLoadingMore(true); // Set isLoadingMore true for subsequent loads
+  
       const response = await fetch(`/api/fetch-emails?label=INBOX${token ? `&pageToken=${token}` : ''}`);
       const data = await response.json();
+  
       if (data.error === 'auth_required') {
-        // Redirect to authentication callback
         const { error } = await supabase.auth.signOut();
         window.location.href = '/auth/login';
         return;
       }
+  
       if (response.ok) {
         setEmails(prevEmails => {
           const uniqueEmails = new Map(prevEmails.map(email => [email.email, email]));
@@ -576,43 +619,64 @@ const fetchMoreEmails = async (type) => {
           });
           return Array.from(uniqueEmails.values());
         });
+  
         setPageToken(data.nextPageToken); // Update with the nextPageToken from the response
         setHasMore(data.nextPageToken !== null);
       } else {
         setError(data.error);
       }
     } catch (err) {
-      setLoading(false);
       console.error('Error fetching emails:', err);
       setError(err.message);
-      setHasMore(false)
-      return
-      
+      setHasMore(false);
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
     }
-  }, [loading, hasMore]);
-
+  }, [loading, isLoadingMore, hasMore, searchActive]);
+  
   useEffect(() => {
     if (!searchActive && initialLoad.current) {
       fetchEmails();
       initialLoad.current = false; // Set to false after the first load
     }
-  }, [searchActive,fetchEmails]);
-
+  }, [searchActive, fetchEmails]);
+  
   const lastEmailRef = useCallback(node => {
-    if (loading || searchActive) return; // Prevent fetching while searching
-  
+    if (loading || isLoadingMore || searchActive) return; // Prevent fetching while searching or loading more
+    
     if (observer.current) observer.current.disconnect();
-  
+    
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
         fetchEmails(pageToken); // Fetch more emails when the observer intersects
       }
     });
-  
+    
     if (node) observer.current.observe(node);
-  }, [loading, hasMore, pageToken, searchActive, fetchEmails]);
+  }, [loading, isLoadingMore, hasMore, pageToken, searchActive, fetchEmails]);
+  
+
+  // useEffect(() => {
+  //   if (!searchActive && initialLoad.current) {
+  //     fetchEmails();
+  //     initialLoad.current = false; // Set to false after the first load
+  //   }
+  // }, [searchActive,fetchEmails]);
+
+  // const lastEmailRef = useCallback(node => {
+  //   if (loading || searchActive) return; // Prevent fetching while searching
+  
+  //   if (observer.current) observer.current.disconnect();
+  
+  //   observer.current = new IntersectionObserver(entries => {
+  //     if (entries[0].isIntersecting && hasMore) {
+  //       fetchEmails(pageToken); // Fetch more emails when the observer intersects
+  //     }
+  //   });
+  
+  //   if (node) observer.current.observe(node);
+  // }, [loading, hasMore, pageToken,isLoadingMore , searchActive, fetchEmails]);
   
 
   const handleSearch = async () => {
@@ -780,6 +844,7 @@ const fetchMoreEmails = async (type) => {
                           activeNameId={activeNameId}
                           onSelectName={handleSelectName}
                           loading={loading}
+                          isLoadingMore={isLoadingMore} 
                           hasMore={hasMore}
                           lastEmailRef={lastEmailRef}
                         />
