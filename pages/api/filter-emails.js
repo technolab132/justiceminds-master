@@ -81,9 +81,9 @@ export default async function handler(req, res) {
   
       let query = '';
       if (type === 'RECIEVE' || type === 'received' || type === 'RECEIVED') {
-        query = `from:${senderEmail},label:${label}`;
+        query = `from:${senderEmail}`;
       } else if (type === 'SENT') {
-        query = `to:${senderEmail},label:${label}`;
+        query = `to:${senderEmail}`;
       }
   
       const gmailResponse = await gmail.users.messages.list({

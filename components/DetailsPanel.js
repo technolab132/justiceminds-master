@@ -645,6 +645,118 @@ const DetailPanel = ({
     return result.shareableLink;
   };
 
+  // const handleUploadPDF = async () => {
+  //   try {
+  //     // Open file dialog to select PDF
+  //     const file = await selectPDFFile(); // Implement file selection logic
+  
+  //     if (file) {
+  //       // Upload PDF to Supabase
+  //       console.log('supabase.storage',supabase.storage);
+  //       const { data, error } = await supabase.storage
+  //         .from('pdfs') // Replace 'pdfs' with your Supabase storage bucket name
+  //         .upload(`public/${file.name}`, file);
+  //       console.log('error',error);
+  //       if (error) throw error;
+  
+  //       // Retrieve public URL of the uploaded file
+  //       const { publicURL, error: urlError } = supabase
+  //         .storage
+  //         .from('pdfs')
+  //         .getPublicUrl(`public/${file.name}`);
+  //       console.log('publicURL',publicURL);
+  //       if (urlError) throw urlError;
+  //       const { pdfData, pdfError } = await supabase.from("Links").insert([
+  //         {
+  //           link: `<iframe src=${publicURL} width="100%" height="790px" frameBorder="0" style="border: 0;"></iframe><br>`,
+  //           name: selectedData["Name"],
+  //           email: selectedData["Email"],
+  //         },
+  //       ]);
+  //       console.log('pdfData',pdfData);
+  //       // Call handleEmbedLinkAdd2 with the retrieved PDF link
+  //      // handleEmbedLinkAdd2(publicURL);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error uploading PDF:', error.message);
+  //   }
+  // };
+  
+  // Utility to select PDF file
+  const getPdfUrl = async (file) => {
+    console.log('file',file.name);
+    const { data, error } = await supabase.storage.from('pdfs').getPublicUrl(`public/${file.name}`);
+    console.log('publicURL',data);
+    if (error) throw error;
+    return data.publicUrl
+  }
+  const handleUploadPDF = async () => {
+    try {
+      // Open file dialog to select PDF
+      const file = await selectPDFFile(); // Implement file selection logic
+  
+      if (file) {
+        // Upload PDF to Supabase
+        console.log('supabase.storage',supabase.storage);
+        const { data, error } = await supabase.storage
+          .from('pdfs') // Replace 'pdfs' with your Supabase storage bucket name
+          .upload(`public/${file.name}`, file);
+        console.log('error',error);
+        if (error) throw error;
+        const url = await getPdfUrl(file);
+        // Retrieve public URL of the uploaded file
+        console.log('url',url);
+        const { pdfData, pdfError } = await supabase.from("Links").insert([
+          {
+            link: `<iframe src=${url} width="100%" height="790px" frameBorder="0" style="border: 0;"></iframe><br>`,
+            fileName: file.name,
+            name: selectedData["Name"],
+            email: selectedData["Email"],
+          },
+        ]);
+        console.log('pdfData',pdfData);
+        // Call handleEmbedLinkAdd2 with the retrieved PDF link
+       // handleEmbedLinkAdd2(publicURL);
+      }
+      
+      
+    } catch (error) {
+      console.error('Error uploading PDF:', error.message);
+    }
+  };
+  const selectPDFFile = () => {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/pdf';
+      input.onchange = (e) => resolve(e.target.files[0]);
+      input.click();
+    });
+  };
+  const deleteEmbedForPdf = async (id, fileName) => {
+    try {
+      // Delete the embed link with the given ID from the "Links" table
+      const { error: deleteError } = await supabase.from("Links").delete().eq("id", id);
+  
+      if (deleteError) {
+        console.error("Error deleting embed link:", deleteError.message);
+        return;
+      }
+  
+      // If link deletion is successful, delete the corresponding file from Supabase storage
+      const { error: storageError } = await supabase.storage.from('pdfs').remove([`public/${fileName}`]);
+  
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError.message);
+      } else {
+        // Remove the deleted embed link from the state
+        setMasterembedLink((prevLinks) => prevLinks.filter((link) => link.id !== id));
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  };
+  
   return (
     <div style={{ lineHeight: "2rem", overflowY: "scroll", height: "90vh" }}>
       {showPdfViewer && (
@@ -1668,6 +1780,7 @@ const DetailPanel = ({
                 <>
                   {publicview === false && (
                     <>
+
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
                           <button
@@ -1687,7 +1800,28 @@ const DetailPanel = ({
                             Embed Content
                           </button>
                         </div>
-                        <button
+                        <div className="flex">
+                          <button
+                            className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white ml-4"
+                            onClick={handleUploadPDF}
+                          >
+                            Add PDF
+                          </button>
+                          <button
+                            className={`px-8 py-2 rounded-md dark:bg-[#1d1d1d] ${
+                              masterembedlink?.length <= 0 ? "bg-gray-300 text-white cursor-not-allowed" : "bg-[#f1c40f] text-white"
+                            } ml-4`}
+                            onClick={() => {
+                              if (masterembedlink?.length > 0) {
+                                window.location.href = `/${selectedData["Email"]}`;
+                              }
+                            }}
+                            disabled={masterembedlink?.length <= 0}
+                          >
+                            Share
+                          </button>
+                        </div>
+                        {/* <button
                           className={`px-8 py-2 rounded-md dark:bg-[#1d1d1d] ${
                             masterembedlink?.length <= 0 ? "bg-gray-300 text-white cursor-not-allowed" : "bg-[#f1c40f] text-white"
                           } ml-4`}
@@ -1699,7 +1833,7 @@ const DetailPanel = ({
                           disabled={masterembedlink?.length <= 0}
                         >
                           Share
-                        </button>
+                        </button> */}
                       </div>
                       <div className="embedlinks py-5">
                           {toggleEmbed ? (
@@ -1825,7 +1959,13 @@ const DetailPanel = ({
                               {publicview === false && (
                                 <button
                                   className="py-0.5 px-4 bg-red-500 text-white"
-                                  onClick={() => deleteEmbed(emb.id)}
+                                  onClick={() =>{
+                                    if (emb.fileName) { // Ensure fileName exists
+                                      deleteEmbedForPdf(emb.id, emb.fileName); // Pass both id and fileName
+                                    } else {
+                                      deleteEmbed(emb.id)
+                                    }
+                                  } }
                                 >
                                   Delete This
                                 </button>
