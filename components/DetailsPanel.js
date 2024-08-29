@@ -1140,7 +1140,7 @@ const DetailPanel = ({
                                 {`--------------------------------`}
                                 <br />
                                 <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
-                                <div className="flex gap-2 mb-2">
+                                <div className="flex gap-2 mb-2 mt-2">
                                   <button
                                     onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
                                     className={`p-2 rounded ${sentBodyFormat[email.id] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
@@ -1154,6 +1154,9 @@ const DetailPanel = ({
                                     Show HTML
                                   </button>
                                 </div>
+                                <br />
+                                <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
+                                <br />
                                 <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                   
                                   {sentBodyFormat[emailId] === 'text/plain' ? (
@@ -1347,6 +1350,8 @@ const DetailPanel = ({
                                   Show HTML
                                 </button>
                               </div>
+                              <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
+                                <br />
                               <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                 {/* {urlsInBody && urlsInBody.length > 0 && (
                                   <>
