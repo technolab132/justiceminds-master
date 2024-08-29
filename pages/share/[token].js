@@ -25,6 +25,13 @@ export default function SharedPage() {
   const [extractedTexts, setExtractedTexts] = useState({});
   const [extractedUrls, setExtractedUrls] = useState({});
   const [loadingtext, setLoadingText] = useState(false);
+  // Initialize state for current page and total pages
+  const [currentPage, setCurrentPage] = useState({ sent: 1, received: 1 });
+  const [emailsPerPage] = useState(50); // Display 50 emails per page
+  const [nextPageTokens, setNextPageTokens] = useState({
+    sent: null,
+    received: null,
+  });
   const [currentlyExtractingEmailIndex, setCurrentlyExtractingEmailIndex] =
     useState(-1);
   useEffect(() => {
@@ -41,7 +48,7 @@ export default function SharedPage() {
         try {
           // Fetch the first 1000 emails for both SENT and RECEIVED
           const Sentresponse = await fetch(`/api/filter-emails?label=SENT&type=SENT&maxResults=10&token=${token}&emailId=${emailId}&refreshToken=${refreshToken}`);
-          const { emails: SentEmails} = await Sentresponse.json();
+          const { emails: SentEmails, nextPageToken: sentNextPageToken} = await Sentresponse.json();
       
           if (Sentresponse.ok) {
             setSentEmails(SentEmails);
@@ -89,6 +96,55 @@ export default function SharedPage() {
     }
   }, [token]);
 
+  const paginatedSentEmails = sentEmails.slice(
+    (currentPage.sent - 1) * emailsPerPage,
+    currentPage.sent * emailsPerPage
+  );
+  
+  const paginatedReceivedEmails = receivedEmails.slice(
+    (currentPage.received - 1) * emailsPerPage,
+    currentPage.received * emailsPerPage
+  );
+  
+  // Updated handlePageChange
+  const handlePageChange = async (type, direction) => {
+    setCurrentPage((prev) => {
+      const newPage = direction === "next" ? prev[type] + 1 : prev[type] - 1;
+
+      // If moving to the next page and need more emails
+      if (direction === "next" && newPage * emailsPerPage > (type === 'sent' ? sentEmails.length : receivedEmails.length)) {
+        fetchMoreEmails(type.toUpperCase());
+      }
+
+      return { ...prev, [type]: newPage };
+    });
+  };
+
+  // Adjusted fetchMoreEmails
+  const fetchMoreEmails = async (type) => {
+    const nextPageToken = nextPageTokens[type.toLowerCase()];
+    if (!nextPageToken) return;
+
+    try {
+      const response = await fetch(`/api/filter-emails?sender=${selectedName.Email}&type=${type}&pageToken=${nextPageToken}`);
+      const { emails, nextPageToken: newNextPageToken } = await response.json();
+
+      if (response.ok) {
+        if (type === 'SENT') {
+          setSentEmails((prev) => [...prev, ...emails]);
+          setNextPageTokens((prev) => ({ ...prev, sent: newNextPageToken }));
+        } else {
+          setReceivedEmails((prev) => [...prev, ...emails]);
+          setNextPageTokens((prev) => ({ ...prev, received: newNextPageToken }));
+        }
+      } else {
+        setError(emails.error);
+      }
+    } catch (err) {
+      console.error('Error fetching more emails:', err);
+      setError(err.message);
+    }
+  };
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -124,8 +180,8 @@ export default function SharedPage() {
           {/* {emailData ? ( */}
             <DetailPanel
               selectedData={selectedData}
-              sentEmails={sentEmails}
-              receivedEmails={receivedEmails}
+              sentEmails={paginatedSentEmails}
+              receivedEmails={paginatedReceivedEmails}
               sentEmailCount={sentEmailCount}
               receivedEmailCount={receivedEmailCount}
               onClose={() => {}}
@@ -139,6 +195,14 @@ export default function SharedPage() {
               currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
               incident={incident}
               publicview={true}
+              nextPageTokens={nextPageTokens}
+              onPageChange={handlePageChange}
+              currentPage={currentPage}
+              emailsPerPage={emailsPerPage}
+              totalPages={{
+                sent: Math.ceil(sentEmailCount / emailsPerPage),
+                received: Math.ceil(receivedEmailCount / emailsPerPage),
+              }}
             />
           {/* // ) : (
           //   <div>No email data available</div>

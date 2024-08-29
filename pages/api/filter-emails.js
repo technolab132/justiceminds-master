@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       const label = req.query?.label;
       const type = req.query.type;
       const senderEmail = req.query.emailId;
-
+      const pageToken = req.query.pageToken;
       const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET
@@ -34,8 +34,8 @@ export default async function handler(req, res) {
       const gmailResponse = await gmail.users.messages.list({
         userId: 'me',
         q: query,
-       // pageToken: pageToken || undefined, // Set the pageToken if provided
-        maxResults: 10, // Number of emails per page
+        pageToken: pageToken || undefined, // Set the pageToken if provided
+        maxResults: 400, // Number of emails per page
       });
   
       const messages = await Promise.all(
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       // Return the emails and the nextPageToken if available
       res.status(200).json({
         emails: messages,
-       // nextPageToken: gmailResponse.data.nextPageToken || null,
+        nextPageToken: gmailResponse.data.nextPageToken || null,
       });
     }else{
       const cookies = cookie.parse(req.headers.cookie || '');
