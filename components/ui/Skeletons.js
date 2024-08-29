@@ -38,14 +38,14 @@ export function SkeletonCard() {
 export function SkeletonDetails() {
   return (
     <div className="space-y-4" style={{ padding: "30px", fontSize: "17px" }}>
-      <Skeleton className="h-6 w-48" />
-      <Skeleton className="h-6 w-40" />
-      <Skeleton className="h-6 w-52" />
-      <Skeleton className="h-6 w-44" />
-      <Skeleton className="h-8 w-32" />
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-6 w-48" />
-      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-6 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-48" />
+      <Skeleton className="h-6 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-40" />
+      <Skeleton className="h-6 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-52" />
+      <Skeleton className="h-6 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-44" />
+      <Skeleton className="h-8 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-32" />
+      <Skeleton className="h-10 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-full" />
+      <Skeleton className="h-6 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-48" />
+      <Skeleton className="h-6 bg-gray-300 animate-pulse dark:bg-[#1c1c1c] bg-white w-48" />
     </div>
   );
 }
