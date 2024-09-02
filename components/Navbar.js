@@ -10,10 +10,34 @@ import {
 } from "../components/ui/dropdown-menu";
 import { FaAlignRight, FaSun, FaUserCircle } from "react-icons/fa";
 import { logout } from '../utils/auth';
+import { supabase } from '../utils/supabaseClient';
 const Navbar = () => {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
 
+  useEffect(() => {
+    const checkSuperadmin = async () => {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error('Error fetching session:', error.message);
+        return;
+      }
+
+      if (data.session) {
+        const { user } = data.session;
+        const { role } = user.user_metadata || {};
+
+        // Check if the user's role is superadmin
+        if (role === 'superadmin') {
+          setIsSuperadmin(true);
+        }
+      }
+    };
+
+    checkSuperadmin();
+  }, []);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Check if code is running on the client side
@@ -41,10 +65,14 @@ const Navbar = () => {
         </div>
       </a>
       <div className="items mr-10">
-      
         <DropdownMenu className="dark sm:hidden">
           <DropdownMenuTrigger className="sm:hidden">
-            <FaAlignRight />
+            {/* <FaAlignRight /> */}
+            {user && user.user_metadata && user.user_metadata.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="User Profile" className="rounded-full w-8 h-8 cursor-pointer" />
+              ) : (
+                <FaUserCircle className="text-2xl cursor-pointer" />
+              )}
           </DropdownMenuTrigger>
           <DropdownMenuContent className="dark bg-black z-[2000] border-gray-800">
             <a href="/"><DropdownMenuItem className={`focus:bg-[#1d1d1d] ${
@@ -52,7 +80,17 @@ const Navbar = () => {
                   ? "text-white bg-gray-700 "
                   : ""
               }`}>Dashboard</DropdownMenuItem></a>
-            <a href="/publicchat"><DropdownMenuItem className={`focus:bg-[#1d1d1d] ${
+              {isSuperadmin && (
+                <a href="/agency"><DropdownMenuItem className={`focus:bg-[#1d1d1d] ${
+                  router.pathname === "/agency"
+                    ? "text-white bg-gray-700"
+                    : ""
+                }`}>Agencies</DropdownMenuItem></a>
+              )}
+               <DropdownMenuItem onClick={logout}>
+                Logout
+              </DropdownMenuItem>
+            {/* <a href="/publicchat"><DropdownMenuItem className={`focus:bg-[#1d1d1d] ${
                 router.pathname === "/publicchat"
                   ? "text-white bg-gray-700"
                   : ""
@@ -81,7 +119,7 @@ const Navbar = () => {
                 router.pathname === "/maps"
                   ? "text-white bg-gray-700"
                   : ""
-              }`}>Maps</DropdownMenuItem></a>
+              }`}>Maps</DropdownMenuItem></a> */}
           </DropdownMenuContent>
         </DropdownMenu>
         <ul className="gap-5 hidden sm:flex">
@@ -96,6 +134,20 @@ const Navbar = () => {
               Dashboard
             </a>
           </li>
+          {isSuperadmin && (
+            <li style={{paddingTop:'6px'}}>
+              <a
+                className={`hover:underline text-[15px] ${
+                  router.pathname === "/agency"
+                    ? "dark:text-white text-gray-900"
+                    : "dark:text-gray-500 text-gray-500"
+                }`}
+                href="/agency"
+              >
+                Agencies
+              </a>
+            </li>
+          )}
           {/* <li>
             <a
               className={`hover:underline text-[15px]  ${

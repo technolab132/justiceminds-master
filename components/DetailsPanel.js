@@ -28,11 +28,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog"
+import { Badge } from "../components/ui/badge"
+
 import { Copy } from "lucide-react";
 import { Button } from "../components/ui/button"
 import ShadowDomWrapper from '../components/ShadowDomWrapper';
 import { RxCross2, RxChevronLeft,RxChevronRight   } from "react-icons/rx";
-
+import { SkeletonDetails } from "./ui/Skeletons";
 const JoditEditor = dynamic(() => import("jodit-react"), {
   ssr: false,
 });
@@ -117,24 +119,7 @@ const DetailPanel = ({
   useEffect(() => {
     setisLoading(true);
     // Fetch data from the Links table for the selected name
-    async function fetchData() {
-      const { data, error } = await supabase
-        .from("Links")
-        .select("*")
-        .eq("email", selectedData["Email"]);
-
-      if (data) {
-        console.log('embed link',data);
-        setMasterembedLink(data);
-      }
-
-      if (error) {
-        console.error("Error fetching data:", error.message);
-      } else {
-        // If data exists for the selected name, set hasLink to true
-        setHasLink(data.length > 0);
-      }
-    }
+    
 
     if (selectedData["Email"]) {
       fetchData();
@@ -149,7 +134,24 @@ const DetailPanel = ({
     setisLoading(false);
   }, [selectedData["Email"]]);
   
+  const fetchData = async() => {
+    const { data, error } = await supabase
+      .from("Links")
+      .select("*")
+      .eq("email", selectedData["Email"]);
 
+    if (data) {
+      console.log('embed link',data);
+      setMasterembedLink(data);
+    }
+
+    if (error) {
+      console.error("Error fetching data:", error.message);
+    } else {
+      // If data exists for the selected name, set hasLink to true
+      setHasLink(data.length > 0);
+    }
+  }
   // Function to open the PDF viewer
   // const openPdfViewer = (link) => {
   //   setisLoading(true);
@@ -267,7 +269,9 @@ const DetailPanel = ({
       } else {
         console.log("Data inserted successfully:", data);
         setEmbedLink("");
+        fetchData();
         setisLoading(false);
+        
       }
     } catch (error) {
       console.error("Error:", error);
@@ -279,10 +283,11 @@ const DetailPanel = ({
   const handleEmbedLinkAdd2 = async () => {
     try {
       setisLoading(true);
-      setEmbedLink2("");
+      //setEmbedLink2("");
+      console.log('embedLink2',embedLink2);
       const { data, error } = await supabase.from("Links").insert([
         {
-          link: `<iframe src=${embedLink2} width="100%" height="790px" frameBorder="0" style="border: 0;"></iframe><br>`,
+          link: `<iframe src="${embedLink2}"width="100%" height="790px" frameBorder="0" style="border: 0;"></iframe><br>`,
           name: selectedData["Name"],
           email: selectedData["Email"],
         },
@@ -294,6 +299,7 @@ const DetailPanel = ({
       } else {
         console.log("Data inserted successfully:", data);
         setEmbedLink("");
+        fetchData();
         setisLoading(false);
       }
     } catch (error) {
@@ -694,7 +700,7 @@ const DetailPanel = ({
     try {
       // Open file dialog to select PDF
       const file = await selectPDFFile(); // Implement file selection logic
-  
+      setisLoading(true);
       if (file) {
         // Upload PDF to Supabase
         console.log('supabase.storage',supabase.storage);
@@ -715,12 +721,14 @@ const DetailPanel = ({
           },
         ]);
         console.log('pdfData',pdfData);
+        fetchData();
         // Call handleEmbedLinkAdd2 with the retrieved PDF link
        // handleEmbedLinkAdd2(publicURL);
       }
-      
+      setisLoading(false);
       
     } catch (error) {
+      setisLoading(false);
       console.error('Error uploading PDF:', error.message);
     }
   };
@@ -736,6 +744,7 @@ const DetailPanel = ({
   const deleteEmbedForPdf = async (id, fileName) => {
     try {
       // Delete the embed link with the given ID from the "Links" table
+      setisLoading(true);
       const { error: deleteError } = await supabase.from("Links").delete().eq("id", id);
   
       if (deleteError) {
@@ -745,14 +754,17 @@ const DetailPanel = ({
   
       // If link deletion is successful, delete the corresponding file from Supabase storage
       const { error: storageError } = await supabase.storage.from('pdfs').remove([`public/${fileName}`]);
-  
+      //console.log('error',error);
       if (storageError) {
         console.error("Error deleting file from storage:", storageError.message);
       } else {
         // Remove the deleted embed link from the state
         setMasterembedLink((prevLinks) => prevLinks.filter((link) => link.id !== id));
+        fetchData();
       }
+      setisLoading(false);
     } catch (error) {
+      setisLoading(false);
       console.error("Error:", error.message);
     }
   };
@@ -1117,7 +1129,12 @@ const DetailPanel = ({
                                       {new Date(dateHeader.value).toLocaleString()}
                                     </td>
                                     <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                      {subjectHeader.value}
+                                      <div className="flex justify-between items-center">
+                                        <span>{subjectHeader.value}</span>
+                                        {pdfAttachmentId && (
+                                          <Badge variant="secondary">Attachments</Badge>
+                                        )}
+                                      </div>
                                     </td>
                                     
                                   </tr>
@@ -1127,19 +1144,20 @@ const DetailPanel = ({
                             </div>
                             <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
                               <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
-                                <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader.value} <br />
+                                <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">From: </strong> {fromHeader.value} <br />
                                 <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader.value} <br /><br />
                                 
                                 {pdfAttachmentId && (
                                   <>
-                                    <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
+                                    <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">PDF: </strong>
                                     <button onClick={handleViewPdf}> View PDF</button>
+                                    <br /><br />
                                   </>
                                 )}
-                                <br /><br />
+                                
                                 {`--------------------------------`}
                                 <br />
-                                <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
+                                <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">Message: </strong>
                                 <div className="flex gap-2 mb-2 mt-2">
                                   <button
                                     onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
@@ -1155,9 +1173,9 @@ const DetailPanel = ({
                                   </button>
                                 </div>
                                 <br />
-                                <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
+                                <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2 py-1.5">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
                                 <br />
-                                <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
+                                <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 5, borderRadius: "10px" }}>
                                   
                                   {sentBodyFormat[emailId] === 'text/plain' ? (
                                     <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
@@ -1308,15 +1326,14 @@ const DetailPanel = ({
                                     {new Date(dateHeader.value).toLocaleString()}
                                   </td>
                                   <td className="w-[65%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                    {subjectHeader.value}
+                                    <div className="flex justify-between items-center">
+                                      <span>{subjectHeader.value}</span>
+                                      {pdfAttachmentId && (
+                                        <Badge variant="secondary">Attachments</Badge>
+                                      )}
+                                    </div>
                                   </td>
-                                  {/* <td className="w-[10%] dark:text-gray-400 text-gray-900 dark:border-[#393939] border-[#ababab]">
-                                  {pdfAttachmentId && (
-                                    <button onClick={handleViewPdf}>
-                                      View PDF
-                                    </button>
-                                  )}
-                                  </td> */}
+                                  
                                 </tr>
                               </tbody>
                             </table>
@@ -1865,12 +1882,12 @@ const DetailPanel = ({
                                 value={selectedData["Name"]}
                               />
                               {embedLink === "" ? (
-                                <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
+                                <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white ml-4 cursor-not-allowed">
                                   Add Link
                                 </button>
                               ) : (
                                 <button
-                                  className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
+                                  className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white ml-4"
                                   onClick={handleEmbedLinkAdd}
                                 >
                                   Add Link
@@ -1899,12 +1916,12 @@ const DetailPanel = ({
                                 value={selectedData["Name"]}
                               />
                               {embedLink2 === "" ? (
-                                <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-gray-300 text-black cursor-not-allowed">
+                                <button className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white ml-4 cursor-not-allowed">
                                   Add Link
                                 </button>
                               ) : (
                                 <button
-                                  className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white"
+                                  className="px-8 py-2 rounded-md dark:bg-[#1d1d1d] bg-[#3498db] text-white ml-4"
                                   onClick={handleEmbedLinkAdd2}
                                 >
                                   Add Link
@@ -1949,7 +1966,9 @@ const DetailPanel = ({
                   </a> */}
                   <br />
                   <br />
-                  {masterembedlink?.length > 0 && (
+                  {isLoading ? (
+                    <SkeletonDetails />
+                  ) : masterembedlink?.length > 0 && (
                     <>
                       {" "}
                       {masterembedlink.map((emb) => (

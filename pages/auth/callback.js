@@ -1,3 +1,37 @@
+// import { useEffect } from 'react';
+// import { useRouter } from 'next/router';
+// import { supabase } from '../../utils/supabaseClient';
+// import Cookies from 'js-cookie';
+
+// const Callback = () => {
+//   const router = useRouter();
+
+//   useEffect(() => {
+//     const handleOAuthCallback = async () => {
+//       const { data, error } = await supabase.auth.getSession();
+//       if (error) {
+//         console.error('Error handling auth callback:', error.message);
+//         return;
+//       }
+
+//       if (data.session) {
+//         const accessToken = data.session.provider_token;
+//         const refreshToken = data.session.refresh_token;
+//         Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
+//         Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
+//       }
+
+//       router.push('/dashboard');
+//     };
+
+//     handleOAuthCallback();
+//   }, [router]);
+
+//   return <div>Loading...</div>;
+// };
+
+// export default Callback;
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
@@ -6,22 +40,52 @@ import Cookies from 'js-cookie';
 const Callback = () => {
   const router = useRouter();
 
+  // Define the superadmin email
+  const superadminEmail = 'parthdawda9@gmail.com'; // Replace with the actual superadmin email
+
   useEffect(() => {
     const handleOAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Error handling auth callback:', error.message);
-        return;
-      }
+      try {
+        const { data, error } = await supabase.auth.getSession();
 
-      if (data.session) {
-        const accessToken = data.session.provider_token;
-        const refreshToken = data.session.refresh_token;
-        Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
-        Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
-      }
+        if (error) {
+          console.error('Error handling auth callback:', error.message);
+          return;
+        }
 
-      router.push('/dashboard');
+        if (data.session) {
+          const { provider_token: accessToken, refresh_token: refreshToken, user } = data.session;
+
+          // Set cookies with additional security options
+          Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
+          Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
+
+          // Check if the authenticated user's email matches the superadmin email
+          if (user.email === superadminEmail) {
+            // Update user metadata to set the role as superadmin
+            const { error: updateError } = await supabase.auth.updateUser({
+              data: { role: 'superadmin' }
+            });
+
+            if (updateError) {
+              console.error('Error updating user role to superadmin:', updateError.message);
+            } else {
+              console.log('User role updated to superadmin');
+            }
+
+            // Redirect to the admin dashboard or any other superadmin page
+            //router.push('/admin/dashboard');
+            //return;
+          }
+
+          // Redirect to the regular dashboard for non-superadmin users
+          router.push('/dashboard');
+        } else {
+          console.error('No session data found');
+        }
+      } catch (err) {
+        console.error('Unexpected error during OAuth callback:', err.message);
+      }
     };
 
     handleOAuthCallback();
@@ -31,3 +95,4 @@ const Callback = () => {
 };
 
 export default Callback;
+
