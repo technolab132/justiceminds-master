@@ -89,7 +89,7 @@ const Sidebar = ({ data, activeNameId, onSelectName, loading, isLoadingMore, las
           {data.map((item, index) => (
             <button
               className={`dark:hover:bg-[#1c1c1c] hover:bg-[#e6e6e6] ${
-                activeNameId?.email === item?.email
+                activeNameId?.Email === item?.email
                   ? "dark:bg-[#1c1c1c] bg-white"
                   : "dark:bg-[#000000] bg-white text-gray-400"
               }`}

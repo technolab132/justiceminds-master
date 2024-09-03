@@ -1341,18 +1341,19 @@ const DetailPanel = ({
                           </div>
                           <AccordionContent className="p-1 mt-2 dark:bg-[#121212] rounded-lg">
                             <li className="rounded-md dark:bg-[#111111] bg-white text-gray-500" style={{ padding: "20px", marginBottom: "20px" }} key={index}>
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">From: </strong> {fromHeader?.value} <br />
+                              <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">From: </strong> {fromHeader?.value} <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282]">To: </strong> {toHeader?.value} <br /><br />
                               {pdfAttachmentId && (
                                 <>
-                                  <strong className="dark:text-[#d5d5d5] text-[#828282]">PDF: </strong>
+                                  <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">PDF: </strong>
                                   <button onClick={handleViewPdf}> View PDF</button>
+                                  <br /><br />
                                 </>
                               )}
-                              <br /><br />
+                              
                               {`--------------------------------`}
                               <br />
-                              <strong className="dark:text-[#d5d5d5] text-[#828282]">Message: </strong>
+                              <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">Message: </strong>
                               <div className="flex gap-2 mb-2">
                                 <button
                                   onClick={() => handleToggleReceivedFormat(email.id, 'text/plain')}
@@ -1367,8 +1368,9 @@ const DetailPanel = ({
                                   Show HTML
                                 </button>
                               </div>
-                              <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
-                                <br />
+                              <br />
+                              <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2 py-1.5">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
+                              <br />
                               <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 10, borderRadius: "10px" }}>
                                 {/* {urlsInBody && urlsInBody.length > 0 && (
                                   <>
