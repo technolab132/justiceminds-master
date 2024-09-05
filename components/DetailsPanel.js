@@ -435,23 +435,23 @@ const DetailPanel = ({
   };
   
   // Set default formats when received or sent emails change
-  useEffect(() => {
-    const initialReceivedFormats = receivedEmails.reduce((acc, email) => {
-      acc[email.id] = 'text/plain'; // Default format
-      return acc;
-    }, {});
+  // useEffect(() => {
+  //   const initialReceivedFormats = receivedEmails.reduce((acc, email) => {
+  //     acc[email.id] = 'text/plain'; // Default format
+  //     return acc;
+  //   }, {});
   
-    setReceivedBodyFormat(prevState => ({ ...prevState, ...initialReceivedFormats }));
-  }, [receivedEmails]);
+  //   setReceivedBodyFormat(prevState => ({ ...prevState, ...initialReceivedFormats }));
+  // }, [receivedEmails]);
   
-  useEffect(() => {
-    const initialSentFormats = sentEmails.reduce((acc, email) => {
-      acc[email.id] = 'text/plain'; // Default format
-      return acc;
-    }, {});
+  // useEffect(() => {
+  //   const initialSentFormats = sentEmails.reduce((acc, email) => {
+  //     acc[email.id] = 'text/plain'; // Default format
+  //     return acc;
+  //   }, {});
   
-    setSentBodyFormat(prevState => ({ ...prevState, ...initialSentFormats }));
-  }, [sentEmails]);
+  //   setSentBodyFormat(prevState => ({ ...prevState, ...initialSentFormats }));
+  // }, [sentEmails]);
   
 
   // for html body
@@ -1092,10 +1092,25 @@ const DetailPanel = ({
                       console.log('pdfData',email.pdfData);
                       // Get the body data from the email payload
                       // Get the body data from the email payload
-                      const { textBody } = getBodyData(email.payload);
-                      console.log('sentHtmlBodies',sentHtmlBodies);
-                      const bodyData = sentBodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
+                      // const { textBody } = getBodyData(email.payload);
+                      // console.log('sentHtmlBodies',sentHtmlBodies);
+                      // const bodyData = sentBodyFormat[emailId] === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
 
+                      const { textBody, htmlBody } = getBodyData(email.payload);
+
+                      // Check if plain text or HTML content is available
+                      const hasTextBody = textBody !== 'No Message';
+                      const hasHtmlBody = htmlBody !== 'No Message';
+
+                      // Determine which body format to use if not explicitly set
+                      const currentFormat = sentBodyFormat[email.id]
+                        ? sentBodyFormat[email.id]
+                        : hasTextBody
+                        ? 'text/plain'
+                        : 'text/html';
+
+                      // Determine the content to display based on the current format
+                      const bodyData = currentFormat === 'text/html' ? sentHtmlBodies[emailId] || 'Loading...' : textBody;
                       const handleViewPdf = async () => {
                         if (pdfAttachmentId) {
                           try {
@@ -1157,7 +1172,7 @@ const DetailPanel = ({
                                 
                                 {`--------------------------------`}
                                 <br />
-                                <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">Message: </strong>
+                                {/* <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">Message: </strong>
                                 <div className="flex gap-2 mb-2 mt-2">
                                   <button
                                     onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
@@ -1171,13 +1186,38 @@ const DetailPanel = ({
                                   >
                                     Show HTML
                                   </button>
+                                </div> */}
+                                <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">Message: </strong>
+                                <div className="flex gap-2 mb-2 mt-2">
+                                  <button
+                                    onClick={() => handleToggleSentFormat(email.id, 'text/plain')}
+                                    className={`p-2 rounded ${
+                                      currentFormat === 'text/plain'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-gray-300 text-gray-700'
+                                    }`}
+                                    disabled={!hasTextBody} // Disable if no plain text content
+                                  >
+                                    Show Text
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleSentFormat(email.id, 'text/html')}
+                                    className={`p-2 rounded ${
+                                      currentFormat === 'text/html'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-300 text-gray-700'
+                                    }`}
+                                    disabled={!hasHtmlBody} // Disable if no HTML content
+                                  >
+                                    Show HTML
+                                  </button>
                                 </div>
                                 <br />
                                 <strong className="dark:text-[#d5d5d5] text-[#828282] mt-2 mb-2 py-1.5">Date: </strong>  {new Date(dateHeader.value).toLocaleString()} <br />
                                 <br />
                                 <div className="dark:bg-black bg-white" style={{ padding: 20, marginTop: 5, borderRadius: "10px" }}>
                                   
-                                  {sentBodyFormat[emailId] === 'text/plain' ? (
+                                  {currentFormat === 'text/plain' ? (
                                     <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                       {bodyData}
                                     </p>
@@ -1280,9 +1320,25 @@ const DetailPanel = ({
                     
 
                     // Get the body data from the email payload
-                    const { textBody } = getBodyData(email.payload);
-                    const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
-                    console.log('emailid',emailId);
+                    // const { textBody } = getBodyData(email.payload);
+                    // const bodyData = receivedBodyFormat[emailId] === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
+                    // console.log('emailid',emailId);
+
+                    const { textBody, htmlBody } = getBodyData(email.payload);
+
+                    // Check if plain text or HTML content is available
+                    const hasTextBody = textBody !== 'No Message';
+                    const hasHtmlBody = htmlBody !== 'No Message';
+
+                    // Determine which body format to use if not explicitly set
+                    const currentFormat = receivedBodyFormat[email.id]
+                      ? receivedBodyFormat[email.id]
+                      : hasTextBody
+                      ? 'text/plain'
+                      : 'text/html';
+
+                    // Determine the content to display based on the current format
+                    const bodyData = currentFormat === 'text/html' ? recievedHtmlBodies[emailId] || 'Loading...' : textBody;
                     const handleViewPdf = async () => {
                       if (pdfAttachmentId) {
                         try {
@@ -1354,16 +1410,26 @@ const DetailPanel = ({
                               {`--------------------------------`}
                               <br />
                               <strong className="dark:text-[#d5d5d5] text-[#828282] py-1.5">Message: </strong>
-                              <div className="flex gap-2 mb-2">
+                              <div className="flex gap-2 mb-2 mt-2">
                                 <button
                                   onClick={() => handleToggleReceivedFormat(email.id, 'text/plain')}
-                                  className={`p-2 rounded ${receivedBodyFormat[email.id] === 'text/plain' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                  className={`p-2 rounded ${
+                                    currentFormat === 'text/plain'
+                                      ? 'bg-blue-500 text-white'
+                                      : 'bg-gray-300 text-gray-700'
+                                  }`}
+                                  disabled={!hasTextBody} // Disable if no plain text content
                                 >
                                   Show Text
                                 </button>
                                 <button
                                   onClick={() => handleToggleReceivedFormat(email.id, 'text/html')}
-                                  className={`p-2 rounded ${receivedBodyFormat[email.id] === 'text/html' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                                  className={`p-2 rounded ${
+                                    currentFormat === 'text/html'
+                                      ? 'bg-green-500 text-white'
+                                      : 'bg-gray-300 text-gray-700'
+                                  }`}
+                                  disabled={!hasHtmlBody} // Disable if no HTML content
                                 >
                                   Show HTML
                                 </button>
@@ -1386,7 +1452,7 @@ const DetailPanel = ({
                                     {`------------------`}
                                   </>
                                 )} */}
-                                {receivedBodyFormat[emailId] === 'text/plain' ? (
+                                {currentFormat === 'text/plain' ? (
                                   <p className="text-black dark:text-white" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                     {bodyData}
                                   </p>
