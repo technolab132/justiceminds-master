@@ -41,7 +41,7 @@ const Callback = () => {
   const router = useRouter();
 
   // Define the superadmin email
-  const superadminEmail = 'parthdawda9@gmail.com'; // Replace with the actual superadmin email
+  const superadminEmail = 'authority@justice-minds.com'; //'parthdawda9@gmail.com'; // Replace with the actual superadmin email
 
   useEffect(() => {
     const handleOAuthCallback = async () => {
