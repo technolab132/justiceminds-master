@@ -226,8 +226,13 @@ export default async function handler(req, res) {
 
     // Convert the map to an array and sort by name
     const sortedClients = Array.from(uniqueClients.entries())
-      .map(([email, name]) => ({ email, name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    .map(([email, name]) => {
+      // Sanitize name by trimming extra quotes or spaces
+      const sanitizedName = name.replace(/^["']|["']$/g, '').trim();
+      return { email, name: sanitizedName };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+
 
     res.status(200).json({
       uniqueClients: sortedClients,
