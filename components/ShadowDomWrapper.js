@@ -20,6 +20,7 @@ const ShadowDomWrapper = ({ htmlContent }) => {
             border-radius: 5px;
             max-width: 100%; /* ensure it fits within container */
             box-sizing: border-box; /* include padding in width calculation */
+            overflow: hidden; /* prevent content from flowing out */
           }
 
           @media (max-width: 600px) {
@@ -40,11 +41,28 @@ const ShadowDomWrapper = ({ htmlContent }) => {
             }
           }
 
-          /* Ensure htmlContent scales properly */
+          /* Ensure content scales properly */
           .responsive-content {
             max-width: 100%;
             box-sizing: border-box;
             margin: 0 auto;
+            overflow-wrap: break-word; /* wrap long words */
+            word-break: break-word; /* break words if too long */
+          }
+
+          /* Ensure images and iframes fit properly */
+          .responsive-content img,
+          .responsive-content iframe {
+            max-width: 100%;
+            height: auto;
+            display: block;
+          }
+
+          /* Handle other large elements */
+          .responsive-content table {
+            width: 100%; /* make tables responsive */
+            overflow-x: auto;
+            display: block;
           }
         </style>
         <div class="responsive-content">
