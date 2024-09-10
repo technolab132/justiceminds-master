@@ -148,24 +148,82 @@ export default function SharedPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
+    // <>
+    //   <div className="fixed top-0 z-[1000] w-full bg-[#0f0f0f] flex py-3 flex-row justify-between items-center ">
+    //     <div className="flex items-center gap-3 ml-10">
+    //       <img
+    //         className="pt-1"
+    //         src="/smalllogo.png"
+    //         style={{ width: "60px" }}
+    //       />
+    //       <div className="">
+    //         <p className="text-md sm:text-lg hidden sm:block">Justiceminds</p>
+    //         <p className="text-xs sm:text-xs hidden sm:block">Data Driven Advocacy</p>
+    //       </div>
+    //     </div>
+    //     <div className="items mr-10">
+    //       <ul className="flex gap-6">
+    //         <li>
+    //           <a
+    //             className={`hover:underline sm:text-md text-xs`}
+    //             href="mailto:advocacy@justice-minds.com"
+    //           >
+    //             advocacy@justice-minds.com
+    //           </a>
+    //         </li>
+    //       </ul>
+    //     </div>
+    //   </div>
+    //   <div className="flex h-screen overflow-hidden pt-[60px] lg:pt-[80px]">
+    //     <div className="overflow-y-auto w-full md:w-2/3 md:m-6 rounded-lg bg-[#101010] md:mx-auto">
+    //       {/* Render DetailPanel with the email data */}
+    //       {/* {emailData ? ( */}
+    //         <DetailPanel
+    //           selectedData={selectedData}
+    //           sentEmails={paginatedSentEmails}
+    //           receivedEmails={paginatedReceivedEmails}
+    //           sentEmailCount={sentEmailCount}
+    //           receivedEmailCount={receivedEmailCount}
+    //           onClose={() => {}}
+    //           //messages={messages}
+    //           loading={loading}
+    //           extractedTexts={extractedTexts}
+    //           setExtractedTexts={() => {}}
+    //           extractedUrls={extractedUrls}
+    //           handleExtractText={() => {}}
+    //           loadingtext={loadingtext}
+    //           currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
+    //           incident={incident}
+    //           publicview={true}
+    //           nextPageTokens={nextPageTokens}
+    //           onPageChange={handlePageChange}
+    //           currentPage={currentPage}
+    //           emailsPerPage={emailsPerPage}
+    //           totalPages={{
+    //             sent: Math.ceil(sentEmailCount / emailsPerPage),
+    //             received: Math.ceil(receivedEmailCount / emailsPerPage),
+    //           }}
+    //         />
+    //       {/* // ) : (
+    //       //   <div>No email data available</div>
+    //       // )} */}
+    //     </div>
+    //   </div>
+    // </>
     <>
-      <div className="fixed top-0 z-[1000] w-full bg-[#0f0f0f] flex py-3 flex-row justify-between items-center ">
-        <div className="flex items-center gap-3 ml-10">
-          <img
-            className="pt-1"
-            src="/smalllogo.png"
-            style={{ width: "60px" }}
-          />
+      <div className="fixed top-0 z-[1000] w-full bg-[#0f0f0f] flex py-2 sm:py-3 flex-row justify-between items-center">
+        <div className="flex items-center gap-2 sm:gap-3 ml-4 sm:ml-10">
+          <img className="pt-1" src="/smalllogo.png" style={{ width: "50px" }} /> {/* Reduced image size for mobile */}
           <div className="">
-            <p className="text-md sm:text-lg ">Justiceminds</p>
-            <p className="text-xs sm:text-xs">Data Driven Advocacy</p>
+            <p className="text-sm sm:text-lg hidden sm:block">Justiceminds</p> {/* Reduced font size for mobile */}
+            <p className="text-xs sm:text-sm hidden sm:block">Data Driven Advocacy</p> {/* Reduced font size for mobile */}
           </div>
         </div>
-        <div className="items mr-10">
-          <ul className="flex gap-6">
+        <div className="mr-4 sm:mr-10">
+          <ul className="flex gap-3 sm:gap-6">
             <li>
               <a
-                className={`hover:underline sm:text-md text-xs`}
+                className={`hover:underline text-xs sm:text-md`}
                 href="mailto:advocacy@justice-minds.com"
               >
                 advocacy@justice-minds.com
@@ -174,42 +232,39 @@ export default function SharedPage() {
           </ul>
         </div>
       </div>
-      <div className="flex h-screen overflow-hidden pt-[60px] lg:pt-[80px]">
-        <div className="overflow-y-auto w-full md:w-2/3 md:m-6 rounded-lg bg-[#101010] md:mx-auto">
-          {/* Render DetailPanel with the email data */}
-          {/* {emailData ? ( */}
-            <DetailPanel
-              selectedData={selectedData}
-              sentEmails={paginatedSentEmails}
-              receivedEmails={paginatedReceivedEmails}
-              sentEmailCount={sentEmailCount}
-              receivedEmailCount={receivedEmailCount}
-              onClose={() => {}}
-              //messages={messages}
-              loading={loading}
-              extractedTexts={extractedTexts}
-              setExtractedTexts={() => {}}
-              extractedUrls={extractedUrls}
-              handleExtractText={() => {}}
-              loadingtext={loadingtext}
-              currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
-              incident={incident}
-              publicview={true}
-              nextPageTokens={nextPageTokens}
-              onPageChange={handlePageChange}
-              currentPage={currentPage}
-              emailsPerPage={emailsPerPage}
-              totalPages={{
-                sent: Math.ceil(sentEmailCount / emailsPerPage),
-                received: Math.ceil(receivedEmailCount / emailsPerPage),
-              }}
-            />
-          {/* // ) : (
-          //   <div>No email data available</div>
-          // )} */}
+
+      <div className="flex h-screen overflow-hidden pt-[50px] sm:pt-[60px] lg:pt-[80px]">
+        <div className="w-full mx-auto sm:w-11/12 md:w-2/3 lg:w-2/3 md:mx-auto lg:mx-auto bg-[#101010] overflow-y-auto md:m-6 rounded-lg"> {/* Ensure content is centered on larger screens */}
+          <DetailPanel
+            selectedData={selectedData}
+            sentEmails={paginatedSentEmails}
+            receivedEmails={paginatedReceivedEmails}
+            sentEmailCount={sentEmailCount}
+            receivedEmailCount={receivedEmailCount}
+            onClose={() => {}}
+            loading={loading}
+            extractedTexts={extractedTexts}
+            setExtractedTexts={() => {}}
+            extractedUrls={extractedUrls}
+            handleExtractText={() => {}}
+            loadingtext={loadingtext}
+            currentlyExtractingEmailIndex={currentlyExtractingEmailIndex}
+            incident={incident}
+            publicview={true}
+            nextPageTokens={nextPageTokens}
+            onPageChange={handlePageChange}
+            currentPage={currentPage}
+            emailsPerPage={emailsPerPage}
+            totalPages={{
+              sent: Math.ceil(sentEmailCount / emailsPerPage),
+              received: Math.ceil(receivedEmailCount / emailsPerPage),
+            }}
+          />
         </div>
       </div>
     </>
+
+
   );
 }
 
