@@ -29,7 +29,16 @@ import { SkeletonDetails } from "../components/ui/Skeletons";
 const Home = () => {
   const router = useRouter();
   const indi = router.params?.indi;
-  const [selectedName, setSelectedName] = useState(null);
+  const [selectedName, setSelectedName] = useState();
+  useEffect(() => {
+    const storedData = localStorage.getItem('selectedData');
+    console.log(typeof(storedData));
+    if (storedData !== null && storedData !== 'null' && storedData !== '') {
+      console.log('storedData', storedData);
+      setSelectedName(JSON.parse(storedData));
+      handleSelectName(JSON.parse(storedData));
+    }
+  }, []);  
   const [showSidebar, setShowSidebar] = useState(true);
 
   const [sentEmails, setSentEmails] = useState([]);
@@ -367,17 +376,19 @@ const Home = () => {
   const [emailsPerPage] = useState(50); // Display 50 emails per page
   
   const handleSelectName = async (data) => {
-    const selectedRow = data;
+    const selectedRow = typeof data === 'string' ? JSON.parse(data) : data;
     const selectedData = {
-      'Email': selectedRow.email,
-      'Name': selectedRow.name,
+      'Email': selectedRow.Email || selectedRow.email,
+      'Name': selectedRow.Name || selectedRow.name,
     };
     setSelectedName(selectedData);
     setisLoading(true);
-  
+    console.log(selectedData);
+    // Store selectedData in localStorage
+    localStorage.setItem('selectedData', JSON.stringify(selectedData));
     try {
       // Fetch the first 1000 emails for both SENT and RECEIVED
-      const Sentresponse = await fetch('/api/filter-emails?sender=' + selectedRow.email + '&label=SENT&type=SENT&maxResults=1000');
+      const Sentresponse = await fetch('/api/filter-emails?sender=' + selectedData.Email + '&label=SENT&type=SENT&maxResults=1000');
       const { emails: SentEmails, nextPageToken: sentNextPageToken } = await Sentresponse.json();
   
       if (Sentresponse.ok) {
@@ -386,7 +397,7 @@ const Home = () => {
         setError(SentEmails.error);
       }
   
-      const Receivedresponse = await fetch('/api/filter-emails?sender=' + selectedRow.email + '&label=INBOX&type=RECIEVE&maxResults=1000');
+      const Receivedresponse = await fetch('/api/filter-emails?sender=' + selectedData.Email + '&label=INBOX&type=RECIEVE&maxResults=1000');
       const { emails: receivedEmails, nextPageToken: receivedNextPageToken } = await Receivedresponse.json();
   
       if (Receivedresponse.ok) {
@@ -396,7 +407,7 @@ const Home = () => {
       }
   
       // Fetch count of sent and received emails
-      const sentCountResponse = await fetch('/api/fetch-email-count?sender=' + selectedRow.email + '&type=SENT');
+      const sentCountResponse = await fetch('/api/fetch-email-count?sender=' + selectedData.Email + '&type=SENT');
       const sentData = await sentCountResponse.json();
   
       if (sentCountResponse.ok) {
@@ -405,7 +416,7 @@ const Home = () => {
         setError(sentData.error);
       }
   
-      const receivedCountResponse = await fetch('/api/fetch-email-count?sender=' + selectedRow.email + '&type=RECIEVE');
+      const receivedCountResponse = await fetch('/api/fetch-email-count?sender=' + selectedData.Email + '&type=RECIEVE');
       const receivedData = await receivedCountResponse.json();
   
       if (receivedCountResponse.ok) {
@@ -551,6 +562,22 @@ const fetchMoreEmails = async (type) => {
   const initialLoad = useRef(true); // Ref to track initial load
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  // Fetch search results from localStorage on component mount
+  useEffect(() => {
+    const storedSearchResults = localStorage.getItem('searchResults');
+    if (storedSearchResults) {
+      try {
+        const parsedResults = JSON.parse(storedSearchResults);
+        setSearchResults(parsedResults);
+        setSearchActive(true); // Set search as active if there are stored results
+        console.log('Search results retrieved from localStorage');
+      } catch (error) {
+        console.error('Error parsing stored search results:', error);
+        // If there's an error parsing, clear the invalid data
+        localStorage.removeItem('searchResults');
+      }
+    }
+  }, []);
   const [searchActive, setSearchActive] = useState(false);
 
 
@@ -695,6 +722,9 @@ const fetchMoreEmails = async (type) => {
         setError('No data found.');
       } else {
         setSearchResults(data.uniqueClients); 
+        // Store the search results in localStorage
+        localStorage.setItem('searchResults', JSON.stringify(data.uniqueClients));
+        console.log('Search results stored in localStorage');
       }
     } catch (error) {
       console.error('Error fetching emails:', error);
@@ -709,6 +739,13 @@ const fetchMoreEmails = async (type) => {
     setSearchActive(false); // Reset search status
     setHasMore(true); // Enable infinite scroll again
     setError(null);
+    // Remove searchResults from localStorage
+    localStorage.removeItem('searchResults');
+    console.log('Search results removed from localStorage');
+    // Remove selectedData from localStorage
+    localStorage.removeItem('selectedData');
+    console.log('Selected data removed from localStorage');
+    setSelectedName(null);
   };
 
   useEffect(() => {
