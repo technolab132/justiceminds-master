@@ -1494,7 +1494,7 @@ const DetailPanel = ({
               {activeTab === "pdflinks" && (
                 <ul className="">
                   <>
-                    {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 && (
+                    {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 ? (
                       <>
                         <p className="p-2 text-green-500">Sent</p>
                         {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).map((email, index) => {
@@ -1567,8 +1567,8 @@ const DetailPanel = ({
                           return null;
                         })}
                       </>
-                    )}
-                    {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 && (
+                    ): null}
+                    {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 ? (
                       <>
                         <p className="p-3 text-green-500">Received</p>
                         {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).map((email, index) => {
@@ -1641,7 +1641,11 @@ const DetailPanel = ({
                           return null;
                         })}
                       </>
-                    )}
+                    ): null}
+                    {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length === 0 && 
+                      receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length === 0 && (
+                        <p className="p-2 text-red-500">No Data Found</p>
+                      )}
                   </>
                 </ul>
               )}
@@ -1650,7 +1654,7 @@ const DetailPanel = ({
               {activeTab === "innerlinks" && (
                 <ul className="">
                   <>
-                    {sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
+                    {sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) ? (
                       <>
                         <p className="p-2 text-green-500">Sent</p>
                         {sentEmails.filter(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0).map((email, index) => {
@@ -1712,8 +1716,8 @@ const DetailPanel = ({
                           );
                         })}
                       </>
-                    )}
-                    {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) && (
+                    ): null}
+                    {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) ? (
                       <>
                         <p className="p-3 text-green-500">Received</p>
                         {receivedEmails.filter(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0).map((email, index) => {
@@ -1774,6 +1778,10 @@ const DetailPanel = ({
                           );
                         })}
                       </>
+                    ): null}
+                    {(!sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) &&
+                      !receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0)) && (
+                      <p className="p-2 text-red-500">No Data Found</p>
                     )}
                     <br />
                   </>
