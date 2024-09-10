@@ -806,7 +806,7 @@ const DetailPanel = ({
             </button>
             <br />
             <br /> */}
-           <AlertDialog>
+           {/* <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" variant="outline" onClick={handleShareClick}>
                   Share
@@ -850,7 +850,61 @@ const DetailPanel = ({
                   </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
+            </AlertDialog> */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md"
+                  variant="outline"
+                  onClick={handleShareClick}
+                >
+                  Share
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Share link</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Anyone who has this link will be able to view this.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <label htmlFor="link" className="sr-only">
+                      Link
+                    </label>
+                    <input
+                      id="link"
+                      className="text-black dark:text-black"
+                      value={shareableLink}
+                      readOnly
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    size="sm"
+                    className="px-3"
+                    onClick={() => navigator.clipboard.writeText(shareableLink)}
+                  >
+                    <span className="sr-only">Copy</span>
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <AlertDialogFooter>
+                  <a href={shareableLink} target="_blank" rel="noopener noreferrer">
+                    <button type="button" className="dark:text-white text-[#1d1d1d] px-8 py-2 cursor-pointer dark:bg-[#1d1d1d] bg-[#e9e9e9]  rounded-md" variant="default">
+                      Visit Link
+                    </button>
+                  </a>
+                  <AlertDialogCancel>
+                    <button type="button" variant="secondary">
+                      Close
+                    </button>
+                  </AlertDialogCancel>  
+                </AlertDialogFooter>
+              </AlertDialogContent>
             </AlertDialog>
+
             <br />
             <br />
             {/* Consent Form Dialog */}
