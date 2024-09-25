@@ -716,7 +716,10 @@ const fetchMoreEmails = async (type) => {
     setSearchActive(true); // Set search as active
     setHasMore(false); // Prevent infinite scroll while searching
     try {
-      const response = await fetch(`/api/fetchby-name?name=${encodeURIComponent(searchTerm)}`);
+      const authData = JSON.parse(localStorage.getItem('sb-sbyocimrxpmvuelrqzuw-auth-token'));
+      const userEmail = authData.user.email;
+      
+      const response = await fetch(`/api/fetchby-name?name=${encodeURIComponent(searchTerm)}&userEmail=${encodeURIComponent(userEmail)}`);
       const data = await response.json();
       if (data.uniqueClients.length === 0) {
         setError('No data found.');
@@ -941,4 +944,4 @@ const fetchMoreEmails = async (type) => {
       </>
     );
 }
-export default withAuth(Home); 
+export default withAuth(Home);
