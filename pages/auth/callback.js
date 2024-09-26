@@ -30,10 +30,6 @@ const Callback = () => {
           Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
           Cookies.set('expiry_date', expiryDate, { expires: 7, secure: true, sameSite: 'Strict' });
 
-          // // Set cookies with additional security options
-          // Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
-          // Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
-
           // Check if the authenticated user's email matches the superadmin email
           if (user.email === superadminEmail) {
             // Update user metadata to set the role as superadmin
@@ -46,10 +42,6 @@ const Callback = () => {
             } else {
               console.log('User role updated to superadmin');
             }
-
-            // Redirect to the admin dashboard or any other superadmin page
-            //router.push('/admin/dashboard');
-            //return;
           }
 
           // Redirect to the regular dashboard for non-superadmin users
