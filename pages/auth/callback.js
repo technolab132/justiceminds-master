@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
 import Cookies from 'js-cookie';
-import cookie from 'cookie';
 
 const Callback = () => {
   const router = useRouter();
