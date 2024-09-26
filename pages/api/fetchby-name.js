@@ -51,14 +51,14 @@ export default async function handler(req, res) {
     }
 
     const name = req.query.name;
-    const userEmail = req.query.userEmail; // Add this line
+    const userEmail = req.query.userEmail;
 
     if (!name || !name.trim() || !userEmail || !userEmail.trim()) {
       return res.status(400).json({ error: 'Name and userEmail query parameters are required' });
     }
 
     let oauth2Client = getOAuth2Client(accessToken, refreshToken);
-    
+
     try {
       await oauth2Client.getTokenInfo(accessToken);
     } catch {
@@ -82,10 +82,26 @@ export default async function handler(req, res) {
     }
 
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-    const gmailResponse = await gmail.users.messages.list({
+    let gmailResponse = {
+      data: {
+        messages: [],
+      },
+    };
+
+    const fromResponse = await gmail.users.messages.list({
       userId: 'me',
-      q: `from:${name} OR to:${name}`,
+      q: `from:${name}`,
     });
+
+    if (fromResponse.data.messages && fromResponse.data.messages.length > 0) {
+      gmailResponse.data.messages = fromResponse.data.messages;
+    } else {
+      const toResponse = await gmail.users.messages.list({
+        userId: 'me',
+        q: `to:${name}`,
+      });
+      gmailResponse.data.messages = toResponse.data.messages || [];
+    }
 
     if (!gmailResponse.data.messages || gmailResponse.data.messages.length === 0) {
       return res.status(200).json({ uniqueClients: [] });
@@ -97,22 +113,25 @@ export default async function handler(req, res) {
       gmailResponse.data.messages.map(async (message) => {
         const email = await gmail.users.messages.get({ userId: 'me', id: message.id });
         const headers = email.data.payload.headers;
+        console.log(headers);
+        // First, check the "From" header
         const fromHeader = headers.find((header) => header.name === 'From');
-        const toHeader = headers.find((header) => header.name === 'To');
-
         if (fromHeader) {
-          const { name, email: emailAddress } = extractNameAndEmail(fromHeader.value);
-          if (emailAddress !== userEmail) {
-            uniqueClients.set(emailAddress, { name, email: emailAddress });
+          const { name: fromName, email: fromEmail } = extractNameAndEmail(fromHeader.value);
+          if (fromEmail !== userEmail) {
+            uniqueClients.set(fromEmail, { name: fromName, email: fromEmail });
+            return; // If found in 'From', no need to check 'To'
           }
         }
 
-        if (toHeader) {
-          const { name, email: emailAddress } = extractNameAndEmail(toHeader.value);
-          if (emailAddress !== userEmail) {
-            uniqueClients.set(emailAddress, { name, email: emailAddress });
-          }
-        }
+        // If not found in 'From', check the "To" header
+        // const toHeader = headers.find((header) => header.name === 'To');
+        // if (toHeader) {
+        //   const { name: toName, email: toEmail } = extractNameAndEmail(toHeader.value);
+        //   if (toName.includes(name) && toEmail !== userEmail) {
+        //     uniqueClients.set(toEmail, { name: toName, email: toEmail });
+        //   }
+        // }
       })
     );
 

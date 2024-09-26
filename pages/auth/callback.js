@@ -1,41 +1,8 @@
-// import { useEffect } from 'react';
-// import { useRouter } from 'next/router';
-// import { supabase } from '../../utils/supabaseClient';
-// import Cookies from 'js-cookie';
-
-// const Callback = () => {
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     const handleOAuthCallback = async () => {
-//       const { data, error } = await supabase.auth.getSession();
-//       if (error) {
-//         console.error('Error handling auth callback:', error.message);
-//         return;
-//       }
-
-//       if (data.session) {
-//         const accessToken = data.session.provider_token;
-//         const refreshToken = data.session.refresh_token;
-//         Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
-//         Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
-//       }
-
-//       router.push('/dashboard');
-//     };
-
-//     handleOAuthCallback();
-//   }, [router]);
-
-//   return <div>Loading...</div>;
-// };
-
-// export default Callback;
-
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../utils/supabaseClient';
 import Cookies from 'js-cookie';
+import cookie from 'cookie';
 
 const Callback = () => {
   const router = useRouter();
@@ -54,11 +21,18 @@ const Callback = () => {
         }
 
         if (data.session) {
-          const { provider_token: accessToken, refresh_token: refreshToken, user } = data.session;
+          const { provider_token: accessToken, provider_refresh_token: refreshToken, user } = data.session;
+          // Get the expiry date from the session
+          const expiryDate = new Date(data.session.expires_at * 1000).getTime().toString();
 
-          // Set cookies with additional security options
+          // Set cookies with additional security options, including expiry date
           Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
           Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
+          Cookies.set('expiry_date', expiryDate, { expires: 7, secure: true, sameSite: 'Strict' });
+
+          // // Set cookies with additional security options
+          // Cookies.set('access_token', accessToken, { expires: 7, secure: true, sameSite: 'Strict' });
+          // Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'Strict' });
 
           // Check if the authenticated user's email matches the superadmin email
           if (user.email === superadminEmail) {
