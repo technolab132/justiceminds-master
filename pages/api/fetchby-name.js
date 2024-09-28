@@ -125,13 +125,13 @@ export default async function handler(req, res) {
         }
 
         // If not found in 'From', check the "To" header
-        // const toHeader = headers.find((header) => header.name === 'To');
-        // if (toHeader) {
-        //   const { name: toName, email: toEmail } = extractNameAndEmail(toHeader.value);
-        //   if (toName.includes(name) && toEmail !== userEmail) {
-        //     uniqueClients.set(toEmail, { name: toName, email: toEmail });
-        //   }
-        // }
+        const toHeader = headers.find((header) => header.name === 'To');
+        if (toHeader) {
+          const { name: toName, email: toEmail } = extractNameAndEmail(toHeader.value);
+          if (toName.includes(name) && toEmail !== userEmail) {
+            uniqueClients.set(toEmail, { name: toName, email: toEmail });
+          }
+        }
       })
     );
 
