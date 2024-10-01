@@ -477,7 +477,15 @@ const DetailPanel = ({
       htmlBody = decodeBase64UrlSafe(payload.body.data);
     } else if (payload.parts) {
       payload.parts.forEach(part => {
-        if (part.mimeType === 'multipart/alternative' && part.parts) {
+        if (part.mimeType === 'multipart/related' && part.parts) {
+          part.parts.forEach(subPart => {
+            if (subPart.mimeType === 'text/plain') {
+              textBody = decodeBase64UrlSafe(subPart.body.data);
+            } else if (subPart.mimeType === 'text/html') {
+              htmlBody = decodeBase64UrlSafe(subPart.body.data);
+            }
+          });
+        }else if (part.mimeType === 'multipart/alternative' && part.parts) {
           part.parts.forEach(subPart => {
             if (subPart.mimeType === 'text/plain') {
               textBody = decodeBase64UrlSafe(subPart.body.data);
