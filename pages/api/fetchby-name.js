@@ -15,8 +15,9 @@ const getOAuth2Client = (accessToken, refreshToken) => {
 
 const refreshAccessToken = async (oauth2Client) => {
   try {
-    const { credentials } = await oauth2Client.refreshToken(oauth2Client.credentials.refresh_token);
-    return credentials.access_token;
+    const { credentials } = await oauth2Client.refreshAccessToken();
+    console.log('Refreshed access token:', credentials);
+    return credentials;
   } catch (error) {
     console.error('Error refreshing access token:', error.response ? error.response.data : error.message);
     throw new Error('Failed to refresh access token');
