@@ -50,7 +50,11 @@ const Home = () => {
   const [currentlyExtractingEmailIndex, setCurrentlyExtractingEmailIndex] =
     useState(-1);
   const [sentEmailCount, setSentEmailCount] = useState(0);
+  const [totalSentPdfAttachments, setTotalSentPdfAttachments] = useState(0);
   const [receivedEmailCount, setReceivedEmailCount] = useState(0);
+  const [totalReceivedPdfAttachments, setTotalReceivedPdfAttachments] = useState(0);
+  const [totalSentInnerLinks, setTotalSentInnerLinks] = useState(0);
+  const [totalReceivedInnerLinks, setTotalReceivedInnerLinks] = useState(0);
   // this is step1 for creating new tab
   const [messages, setMessages] = useState([]);
   const [activeTab, setActiveTab] = useState();
@@ -412,6 +416,8 @@ const Home = () => {
   
       if (sentCountResponse.ok) {
         setSentEmailCount(sentData.count);
+        setTotalSentPdfAttachments(sentData.totalPdfAttachments);
+        setTotalSentInnerLinks(sentData.totalInnerLinks);
       } else {
         setError(sentData.error);
       }
@@ -421,22 +427,29 @@ const Home = () => {
   
       if (receivedCountResponse.ok) {
         setReceivedEmailCount(receivedData.count);
+        setTotalReceivedPdfAttachments(receivedData.totalPdfAttachments);
+        setTotalReceivedInnerLinks(receivedData.totalInnerLinks);
       } else {
         setError(receivedData.error);
       }
   
-      // Set the initial active tab based on available emails
-      if (SentEmails.length > 0) {
-        setActiveTab('sent');
-      } else {
-        setActiveTab('received');
-      }
   
       setNextPageTokens({
         sent: sentNextPageToken,
         received: receivedNextPageToken,
       });
-  
+      setCurrentPage({
+        sent: 1,
+        received: 1,
+      });
+      console.log('sentEmails',sentEmails);
+      if (sentEmails.length === 0) {
+        setActiveTab('received');
+      } else {
+        setActiveTab('sent');
+      }
+      console.log('active tabs',activeTab);
+      //console.log('nextPageTokens',currentPage);
     } catch (err) {
       console.error('Error fetching emails:', err);
       setError(err.message);
@@ -924,6 +937,14 @@ const fetchMoreEmails = async (type) => {
                       totalPages={{
                         sent: Math.ceil(sentEmailCount / emailsPerPage),
                         received: Math.ceil(receivedEmailCount / emailsPerPage),
+                      }}
+                      totalPdfAttachments={{
+                        sent: totalSentPdfAttachments,
+                        received: totalReceivedPdfAttachments,
+                      }}
+                      totalInnerLinks={{
+                        sent: totalSentInnerLinks,
+                        received: totalReceivedInnerLinks,
                       }}
                     />
                   ) : (

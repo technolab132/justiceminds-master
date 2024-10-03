@@ -67,7 +67,9 @@ const DetailPanel = ({
   onPageChange,
   currentPage,
   totalPages,
-  emailsPerPage
+  emailsPerPage,
+  totalPdfAttachments,
+  totalInnerLinks,
 }) => {
  // console.log('activeTabs',typeof(activeTabs));
   const [activeTab, setActiveTab] = useState('sent');
@@ -120,7 +122,8 @@ const DetailPanel = ({
     setisLoading(true);
     // Fetch data from the Links table for the selected name
     
-
+    setActiveTab(activeTabs);
+    console.log('active tabs',activeTabs);
     if (selectedData["Email"]) {
       fetchData();
       setisLoading(false);
@@ -1194,7 +1197,7 @@ const DetailPanel = ({
                         }
                       };
                       const urlsInBody = extractUrlsFromText(bodyData);
-                      console.log('urls',urlsInBody);
+                      // console.log('urls',urlsInBody);
                       return (
                         <Accordion key={index} type={"single"} collapsible className="w-full">
                           <AccordionItem className="text-md border-0 mb-2" value={index + 1}>
@@ -1421,7 +1424,8 @@ const DetailPanel = ({
                       }
                     };
                     const urlsInBody = extractUrlsFromText(bodyData);
-                    console.log('urls',urlsInBody);
+
+                    // console.log('urls',urlsInBody);
                     const shortenUrl = (url) => {
                       try {
                         const urlObj = new URL(url);
@@ -1553,9 +1557,12 @@ const DetailPanel = ({
 
                 </ul>
               )}
+              
               {activeTab === "pdflinks" && (
                 <ul className="">
                   <>
+                    
+                    
                     {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 ? (
                       <>
                         <p className="p-2 text-green-500">Sent</p>
@@ -1630,6 +1637,27 @@ const DetailPanel = ({
                         })}
                       </>
                     ): null}
+                    {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 && (
+                      <div className="pagination-controls flex justify-between items-center mt-4">
+                        <button
+                          onClick={() => handlePreviousPage("sent")}
+                          disabled={currentPage["sent"] === 1}
+                          className={` ${currentPage["sent"] === 1 ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                        >
+                          <RxChevronLeft />
+                        </button>
+                        <span className="text-gray-600">
+                          Page {currentPage["sent"]} of {Math.ceil(totalPdfAttachments["sent"] / emailsPerPage)}
+                        </span>
+                        <button
+                          onClick={() => handleNextPage("sent")}
+                          disabled={currentPage["sent"] * emailsPerPage >= totalPdfAttachments["sent"] && !nextPageTokens["sent"]}
+                          className={`p-2 rounded ${currentPage["sent"] * emailsPerPage >= totalPdfAttachments["sent"] && !nextPageTokens["sent"] ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                        >
+                          <RxChevronRight />
+                        </button>
+                      </div>
+                    )}
                     {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 ? (
                       <>
                         <p className="p-3 text-green-500">Received</p>
@@ -1704,6 +1732,27 @@ const DetailPanel = ({
                         })}
                       </>
                     ): null}
+                    {receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length > 0 && (
+                      <div className="pagination-controls flex justify-between items-center mt-4">
+                        <button
+                          onClick={() => handlePreviousPage("received")}
+                          disabled={currentPage["received"] === 1}
+                          className={` ${currentPage["received"] === 1 ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                        >
+                          <RxChevronLeft />
+                        </button>
+                        <span className="text-gray-600">
+                          Page {currentPage["received"]} of {Math.ceil(totalPdfAttachments["received"] / emailsPerPage)}
+                        </span>
+                        <button
+                          onClick={() => handleNextPage("received")}
+                          disabled={currentPage["received"] * emailsPerPage >= totalPdfAttachments["received"] && !nextPageTokens["received"]}
+                          className={`p-2 rounded ${currentPage["received"] * emailsPerPage >= totalPdfAttachments["received"] && !nextPageTokens["received"] ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                        >
+                          <RxChevronRight />
+                        </button>
+                      </div>
+                    )}
                     {sentEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length === 0 && 
                       receivedEmails.filter(email => email.payload?.parts?.some(part => part.mimeType === 'application/pdf')).length === 0 && (
                         <p className="p-2 text-red-500">No Data Found</p>
@@ -1839,6 +1888,29 @@ const DetailPanel = ({
                             </Accordion>
                           );
                         })}
+                      </>
+                    ): null}
+                    {receivedEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) ? (
+                      <>
+                      <div className="pagination-controls flex justify-between items-center mt-4">
+                        <button
+                          onClick={() => handlePreviousPage("received")}
+                          disabled={currentPage["received"] === 1}
+                          className={` ${currentPage["received"] === 1 ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                        >
+                          <RxChevronLeft />
+                        </button>
+                        <span className="text-gray-600">
+                          Page {currentPage["received"]} of {Math.ceil(totalInnerLinks["received"] / emailsPerPage)}
+                        </span>
+                        <button
+                          onClick={() => handleNextPage("received")}
+                          disabled={currentPage["received"] * emailsPerPage >= totalInnerLinks["received"] && !nextPageTokens["received"]}
+                          className={`p-2 rounded ${currentPage["received"] * emailsPerPage >= totalInnerLinks["received"] && !nextPageTokens["received"] ? 'dark:bg-[#262626] bg-[#eeeeee] text-gray-700  p-3 rounded-lg cursor-not-allowed' : 'dark:bg-[#262626] bg-[#eeeeee] text-gray-500 p-3 rounded-lg '}`}
+                        >
+                          <RxChevronRight />
+                        </button>
+                      </div>
                       </>
                     ): null}
                     {(!sentEmails.some(email => extractUrlsFromText(getBodyData(email.payload).textBody).length > 0) &&
