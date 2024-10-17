@@ -18,7 +18,7 @@ const Callback = () => {
           console.error('Error handling auth callback:', error.message);
           return;
         }
-
+        console.log('data.session', data.session);
         if (data.session) {
           const { provider_token: accessToken, provider_refresh_token: refreshToken, user } = data.session;
           // Get the expiry date from the session
