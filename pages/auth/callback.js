@@ -47,9 +47,11 @@ const Callback = () => {
           router.push('/dashboard');
         } else {
           console.error('No session data found');
+          router.push('/auth/login');
         }
       } catch (err) {
         console.error('Unexpected error during OAuth callback:', err.message);
+        router.push('/auth/login');
       }
     };
 
