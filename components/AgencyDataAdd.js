@@ -303,7 +303,7 @@ const AddContent = ({ agencyMaster }) => {
         setshowmessage("Agency name is required");
         return;
       }
-
+      console.log('agencyMaster',agencyMaster.id)
       if (agencyMaster && agencyMaster.id) {
         // Fetch data from Supabase if agencyMaster has an id
         const existingRecord = await supabase
@@ -377,10 +377,14 @@ const AddContent = ({ agencyMaster }) => {
         }
       } else {
         // Insert new record without an agencyMaster (new ID will be generated)
+        // Generate a random postId
+        const postId = parseInt(Math.random().toString(36).slice(2, 11), 36); // Generates a random int8 starting with 443
+
         const { data, error } = await supabase.from("Liverpooldata").upsert([
           {
             agencies: agencyData.agencies,
             tabs: agencyData.tabs,
+            posId: postId,
           },
         ]);
 
